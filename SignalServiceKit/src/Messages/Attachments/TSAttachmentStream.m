@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2017 Open Whisper Systems. All rights reserved.
+//  Copyright (c) 2018 Open Whisper Systems. All rights reserved.
 //
 
 #import "TSAttachmentStream.h"
@@ -163,7 +163,7 @@ NS_ASSUME_NONNULL_BEGIN
         OWSFail(@"%@ Missing path for attachment.", self.logTag);
         return NO;
     }
-    DDLogInfo(@"%@ Writing attachment to file: %@", self.logTag, filePath);
+    DDLogInfo(@"%@ Writing attachment data to file: %@", self.logTag, filePath);
     return [data writeToFile:filePath options:0 error:error];
 }
 
@@ -176,7 +176,7 @@ NS_ASSUME_NONNULL_BEGIN
         OWSFail(@"%@ Missing path for attachment.", self.logTag);
         return NO;
     }
-    DDLogInfo(@"%@ Writing attachment to file: %@", self.logTag, filePath);
+    DDLogInfo(@"%@ Writing attachment data source to file: %@", self.logTag, filePath);
     return [dataSource writeToPath:filePath];
 }
 
