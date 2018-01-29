@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2017 Open Whisper Systems. All rights reserved.
+//  Copyright (c) 2018 Open Whisper Systems. All rights reserved.
 //
 
 #import "TSStorageManager.h"
@@ -350,6 +350,14 @@ void setDatabaseInitialized()
 }
 
 - (void)protectSignalFiles {
+    DDLogInfo(@"%@ Database file size: %@", self.logTag, [OWSFileSystem fileSizeOfPath:[self dbPath]]);
+    DDLogInfo(@"%@ \t SHM file size: %@",
+        self.logTag,
+        [OWSFileSystem fileSizeOfPath:[[self dbPath] stringByAppendingString:@"-shm"]]);
+    DDLogInfo(@"%@ \t WAL file size: %@",
+        self.logTag,
+        [OWSFileSystem fileSizeOfPath:[[self dbPath] stringByAppendingString:@"-wal"]]);
+
     [OWSFileSystem protectFileOrFolderAtPath:[self dbPath]];
     [OWSFileSystem protectFileOrFolderAtPath:[[self dbPath] stringByAppendingString:@"-shm"]];
     [OWSFileSystem protectFileOrFolderAtPath:[[self dbPath] stringByAppendingString:@"-wal"]];

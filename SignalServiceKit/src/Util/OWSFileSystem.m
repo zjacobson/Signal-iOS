@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2017 Open Whisper Systems. All rights reserved.
+//  Copyright (c) 2018 Open Whisper Systems. All rights reserved.
 //
 
 #import "OWSFileSystem.h"
@@ -155,6 +155,20 @@ NS_ASSUME_NONNULL_BEGIN
     }
 
     return filePaths;
+}
+
++ (nullable NSNumber *)fileSizeOfPath:(NSString *)filePath
+{
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSError *_Nullable error;
+    unsigned long long fileSize =
+        [[fileManager attributesOfItemAtPath:filePath error:&error][NSFileSize] unsignedLongLongValue];
+    if (error) {
+        DDLogError(@"%@ Couldn't fetch file size[%@]: %@", self.logTag, filePath, error);
+        return nil;
+    } else {
+        return @(fileSize);
+    }
 }
 
 @end

@@ -9,9 +9,9 @@
 #import "DebugLogger.h"
 #import "Environment.h"
 #import "NotificationsManager.h"
+#import "OWSBackup.h"
 #import "OWSContactsManager.h"
 #import "OWSContactsSyncing.h"
-#import "OWSBackup.h"
 #import "OWSNavigationController.h"
 #import "OWSPreferences.h"
 #import "OWSProfileManager.h"
@@ -875,16 +875,16 @@ static NSString *const kURLHostVerifyPrefix             = @"verify";
 
     self.isEnvironmentSetup = YES;
 
-#ifdef DEBUG
-    // A bug in orphan cleanup could be disastrous so let's only
-    // run it in DEBUG builds for a few releases.
-    //
-    // TODO: Release to production once we have analytics.
-    // TODO: Orphan cleanup is somewhat expensive - not least in doing a bunch
-    //       of disk access.  We might want to only run it "once per version"
-    //       or something like that in production.
-    [OWSOrphanedDataCleaner auditAndCleanupAsync:nil];
-#endif
+    //#ifdef DEBUG
+    //    // A bug in orphan cleanup could be disastrous so let's only
+    //    // run it in DEBUG builds for a few releases.
+    //    //
+    //    // TODO: Release to production once we have analytics.
+    //    // TODO: Orphan cleanup is somewhat expensive - not least in doing a bunch
+    //    //       of disk access.  We might want to only run it "once per version"
+    //    //       or something like that in production.
+    //    [OWSOrphanedDataCleaner auditAndCleanupAsync:nil];
+    //#endif
 
     [OWSProfileManager.sharedManager fetchLocalUsersProfile];
     [[OWSReadReceiptManager sharedManager] prepareCachedValues];
