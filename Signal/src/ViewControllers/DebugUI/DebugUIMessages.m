@@ -232,9 +232,13 @@ NS_ASSUME_NONNULL_BEGIN
                         actionBlock:^{
                             [DebugUIMessages createSystemMessagesInThread:thread];
                         }],
-        [OWSTableItem itemWithTitle:@"Create messages with variety of timestamps"
+        [OWSTableItem itemWithTitle:@"Fake messages, timestamps variations"
                         actionBlock:^{
                             [DebugUIMessages createTimestampMessagesInThread:thread];
+                        }],
+        [OWSTableItem itemWithTitle:@"Fake messages, cell variations"
+                        actionBlock:^{
+                            [DebugUIMessages createCellVariationMessagesInThread:thread];
                         }],
 
         [OWSTableItem itemWithTitle:@"Send 10 text and system messages"
@@ -277,13 +281,9 @@ NS_ASSUME_NONNULL_BEGIN
                         actionBlock:^{
                             [DebugUIMessages injectFakeIncomingMessages:1000 thread:thread];
                         }],
-        [OWSTableItem itemWithTitle:@"Test Indic Scripts"
+        [OWSTableItem itemWithTitle:@"Fake messages, dangerous strings"
                         actionBlock:^{
-                            [DebugUIMessages testIndicScriptsInThread:thread];
-                        }],
-        [OWSTableItem itemWithTitle:@"Test Zalgo"
-                        actionBlock:^{
-                            [DebugUIMessages testZalgoTextInThread:thread];
+                            [DebugUIMessages testDangerousStringsInThread:thread];
                         }],
     ] mutableCopy];
     if ([thread isKindOfClass:[TSContactThread class]]) {
@@ -1601,11 +1601,49 @@ NS_ASSUME_NONNULL_BEGIN
     }];
 }
 
-+ (void)testIndicScriptsInThread:(TSThread *)thread
++ (void)createCellVariationMessagesInThread:(TSThread *)thread
+{
+    OWSAssert(thread);
+
+    NSMutableArray<NSString *> *recipientIds = [thread.recipientIdentifiers mutableCopy];
+    [recipientIds removeObject:[TSAccountManager localNumber]];
+    NSString *recipientId = (recipientIds.count > 0 ? recipientIds.firstObject : @"+19174054215");
+
+    [TSStorageManager.dbReadWriteConnection readWriteWithBlock:^(YapDatabaseReadWriteTransaction *transaction) {
+        {
+            TSIncomingMessage *message =
+            [[TSIncomingMessage alloc] initWithTimestamp:[NSDate ows_millisecondTimeStamp]
+                                                inThread:thread
+                                                authorId:recipientId
+                                          sourceDeviceId:0
+                                             messageBody:[self randomText]];
+            [message saveWithTransaction:transaction];
+            [message markAsReadWithTransaction:transaction sendReadReceipt:NO updateExpiration:NO];
+}
+{
+    TSOutgoingMessage *message = [[TSOutgoingMessage alloc] initWithTimestamp:[NSDate ows_millisecondTimeStamp]
+                                                                     inThread:thread
+                                                                  messageBody:[self randomText]];
+    [message saveWithTransaction:transaction];
+    [message updateWithMessageState:TSOutgoingMessageStateSentToService transaction:transaction];
+    [message updateWithSentRecipient:recipientId transaction:transaction];
+    [message updateWithDeliveredToRecipientId:recipientId
+                            deliveryTimestamp:@([NSDate ows_millisecondTimeStamp])
+                                  transaction:transaction];
+    [message updateWithReadRecipientId:recipientId
+                         readTimestamp:[NSDate ows_millisecondTimeStamp]
+                           transaction:transaction];
+}
+}];
+}
+
++ (void)testDangerousStringsInThread:(TSThread *)thread
 {
     NSArray<NSString *> *strings = @[
         @"\u0C1C\u0C4D\u0C1E\u200C\u0C3E",
         @"\u09B8\u09CD\u09B0\u200C\u09C1",
+        @"Ṱ̴̤̺̣͚͚̭̰̤̮̑̓̀͂͘͡h̵̢̤͔̼̗̦̖̬͌̀͒̀͘i̴̮̤͎͎̝̖̻͓̅̆͆̓̎͘͡ͅŝ̡̡̳͔̓͗̾̀̇͒͘͢͢͡͡ ỉ̛̲̩̫̝͉̀̒͐͋̾͘͢͡͞s̶̨̫̞̜̹͛́̇͑̅̒̊̈ s̵͍̲̗̠̗͈̦̬̉̿͂̏̐͆̾͐͊̾ǫ̶͍̼̝̉͊̉͢͜͞͝ͅͅṁ̵̡̨̬̤̝͔̣̄̍̋͊̿̄͋̈ͅe̪̪̻̱͖͚͈̲̍̃͘͠͝ z̷̢̢̛̩̦̱̺̼͑́̉̾ą͕͎̠̮̹̱̓̔̓̈̈́̅̐͢l̵̨͚̜͉̟̜͉͎̃͆͆͒͑̍̈̚͜͞ğ͔̖̫̞͎͍̒̂́̒̿̽̆͟o̶̢̬͚̘̤̪͇̻̒̋̇̊̏͢͡͡͠ͅ t̡̛̥̦̪̮̅̓̑̈́̉̓̽͛͢͡ȩ̡̩͓͈̩͎͗̔͑̌̓͊͆͝x̫̦͓̤͓̘̝̪͊̆͌͊̽̃̏͒͘͘͢ẗ̶̢̨̛̰̯͕͔́̐͗͌͟͠.̷̩̼̼̩̞̘̪́͗̅͊̎̾̅̏̀̕͟ͅ",
+        @"This is some normal text",
         @"non-crashing string",
     ];
 
@@ -1614,47 +1652,6 @@ NS_ASSUME_NONNULL_BEGIN
             for (NSString *string in strings) {
                 // DO NOT log these strings with the debugger attached.
                 //        DDLogInfo(@"%@ %@", self.logTag, string);
-
-                {
-                    TSIncomingMessage *message =
-                        [[TSIncomingMessage alloc] initWithTimestamp:[NSDate ows_millisecondTimeStamp]
-                                                            inThread:thread
-                                                            authorId:@"+19174054215"
-                                                      sourceDeviceId:0
-                                                         messageBody:string];
-                    [message saveWithTransaction:transaction];
-                    [message markAsReadWithTransaction:transaction sendReadReceipt:NO updateExpiration:NO];
-                }
-                {
-                    NSString *recipientId = @"+19174054215";
-                    NSString *groupName = string;
-                    NSMutableArray<NSString *> *recipientIds = [@[
-                        recipientId,
-                        [TSAccountManager localNumber],
-                    ] mutableCopy];
-                    NSData *groupId = [SecurityUtils generateRandomBytes:16];
-                    TSGroupModel *groupModel =
-                        [[TSGroupModel alloc] initWithTitle:groupName memberIds:recipientIds image:nil groupId:groupId];
-
-                    TSGroupThread *groupThread =
-                        [TSGroupThread getOrCreateThreadWithGroupModel:groupModel transaction:transaction];
-                    OWSAssert(groupThread);
-                }
-            }
-        }];
-}
-
-+ (void)testZalgoTextInThread:(TSThread *)thread
-{
-    NSArray<NSString *> *strings = @[
-        @"Ṱ̴̤̺̣͚͚̭̰̤̮̑̓̀͂͘͡h̵̢̤͔̼̗̦̖̬͌̀͒̀͘i̴̮̤͎͎̝̖̻͓̅̆͆̓̎͘͡ͅŝ̡̡̳͔̓͗̾̀̇͒͘͢͢͡͡ ỉ̛̲̩̫̝͉̀̒͐͋̾͘͢͡͞s̶̨̫̞̜̹͛́̇͑̅̒̊̈ s̵͍̲̗̠̗͈̦̬̉̿͂̏̐͆̾͐͊̾ǫ̶͍̼̝̉͊̉͢͜͞͝ͅͅṁ̵̡̨̬̤̝͔̣̄̍̋͊̿̄͋̈ͅe̪̪̻̱͖͚͈̲̍̃͘͠͝ z̷̢̢̛̩̦̱̺̼͑́̉̾ą͕͎̠̮̹̱̓̔̓̈̈́̅̐͢l̵̨͚̜͉̟̜͉͎̃͆͆͒͑̍̈̚͜͞ğ͔̖̫̞͎͍̒̂́̒̿̽̆͟o̶̢̬͚̘̤̪͇̻̒̋̇̊̏͢͡͡͠ͅ t̡̛̥̦̪̮̅̓̑̈́̉̓̽͛͢͡ȩ̡̩͓͈̩͎͗̔͑̌̓͊͆͝x̫̦͓̤͓̘̝̪͊̆͌͊̽̃̏͒͘͘͢ẗ̶̢̨̛̰̯͕͔́̐͗͌͟͠.̷̩̼̼̩̞̘̪́͗̅͊̎̾̅̏̀̕͟ͅ",
-        @"This is some normal text",
-    ];
-
-    [TSStorageManager.sharedManager.dbReadWriteConnection
-        readWriteWithBlock:^(YapDatabaseReadWriteTransaction *transaction) {
-            for (NSString *string in strings) {
-                DDLogInfo(@"%@ sending zalgo", self.logTag);
 
                 {
                     TSIncomingMessage *message =
