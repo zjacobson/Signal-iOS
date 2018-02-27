@@ -35,7 +35,7 @@ NS_ASSUME_NONNULL_BEGIN
 
     self.view.backgroundColor = [UIColor whiteColor];
 
-    self.navigationItem.title = NSLocalizedString(@"BACKUP_IMPORT_VIEW_TITLE", @"Title for the 'backup import' view.");
+    self.navigationItem.title = @"Restore Backup";
     self.navigationItem.leftBarButtonItem =
         [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop
                                                       target:self
@@ -89,8 +89,7 @@ NS_ASSUME_NONNULL_BEGIN
     [self.progressView autoSetDimension:ALDimensionHeight toSize:20];
 
     UILabel *label = [UILabel new];
-    label.text = NSLocalizedString(
-        @"BACKUP_IMPORT_IN_PROGRESS_MESSAGE", @"Message indicating that backup import is in progress.");
+    label.text = @"Restoring Backup...";
     label.textColor = [UIColor blackColor];
     label.font = [UIFont ows_regularFontWithSize:18.f];
     label.textAlignment = NSTextAlignmentCenter;
@@ -117,9 +116,7 @@ NS_ASSUME_NONNULL_BEGIN
     NSMutableArray<UIView *> *subviews = [NSMutableArray new];
 
     {
-        NSString *message = NSLocalizedString(
-            @"BACKUP_IMPORT_COMPLETE_MESSAGE", @"Message indicating that backup import is complete.");
-
+        NSString *message = @"Restore Complete";
         UILabel *label = [UILabel new];
         label.text = message;
         label.textColor = [UIColor blackColor];
@@ -132,9 +129,7 @@ NS_ASSUME_NONNULL_BEGIN
 
     [subviews addObject:[UIView new]];
 
-    [subviews addObject:[self makeButtonWithTitle:NSLocalizedString(@"BACKUP_IMPORT_RESTART_BUTTON",
-                                                      @"Label for button that restarts app to complete restore.")
-                                         selector:@selector(restartApp)]];
+    [subviews addObject:[self makeButtonWithTitle:@"Restart App" selector:@selector(restartApp)]];
 
     UIView *container = [UIView verticalStackWithSubviews:subviews spacing:10];
     [self.view addSubview:container];
@@ -147,9 +142,7 @@ NS_ASSUME_NONNULL_BEGIN
     NSMutableArray<UIView *> *subviews = [NSMutableArray new];
 
     {
-        NSString *message
-            = NSLocalizedString(@"BACKUP_IMPORT_FAILED_MESSAGE", @"Message indicating that backup import failed.");
-
+        NSString *message = @"Restore Failed";
         UILabel *label = [UILabel new];
         label.text = message;
         label.textColor = [UIColor blackColor];

@@ -188,11 +188,7 @@ NSString *const Keychain_ImportBackupKey = @"ImportBackupKey";
     [dateFormatter setLocale:[NSLocale currentLocale]];
     [dateFormatter setDateFormat:@"yyyy.MM.dd hh.mm.ss"];
     NSString *backupDateTime = [dateFormatter stringFromDate:[NSDate new]];
-    NSString *backupName =
-        [NSString stringWithFormat:NSLocalizedString(@"BACKUP_FILENAME_FORMAT",
-                                       @"Format for backup filenames. Embeds: {{the date and time of the backup}}. "
-                                       @"Should not include characters like slash (/ or \\) or colon (:)."),
-                  backupDateTime];
+    NSString *backupName = [NSString stringWithFormat:@"Signal Backup %@", backupDateTime];
     NSString *backupZipPath =
         [rootDirPath stringByAppendingPathComponent:[backupName stringByAppendingString:OWSBackup_FileExtension]];
     self.backupDirPath = backupDirPath;

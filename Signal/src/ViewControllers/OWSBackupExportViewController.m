@@ -35,7 +35,7 @@ NS_ASSUME_NONNULL_BEGIN
 
     self.view.backgroundColor = [UIColor whiteColor];
 
-    self.navigationItem.title = NSLocalizedString(@"BACKUP_EXPORT_VIEW_TITLE", @"Title for the 'backup export' view.");
+    self.navigationItem.title = @"Backup";
     self.navigationItem.leftBarButtonItem =
         [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop
                                                       target:self
@@ -88,8 +88,7 @@ NS_ASSUME_NONNULL_BEGIN
     [self.progressView autoSetDimension:ALDimensionHeight toSize:20];
 
     UILabel *label = [UILabel new];
-    label.text = NSLocalizedString(
-        @"BACKUP_EXPORT_IN_PROGRESS_MESSAGE", @"Message indicating that backup export is in progress.");
+    label.text = @"Exporting Backup...";
     label.textColor = [UIColor blackColor];
     label.font = [UIFont ows_regularFontWithSize:18.f];
     label.textAlignment = NSTextAlignmentCenter;
@@ -116,8 +115,7 @@ NS_ASSUME_NONNULL_BEGIN
     NSMutableArray<UIView *> *subviews = [NSMutableArray new];
 
     {
-        NSString *message = NSLocalizedString(
-            @"BACKUP_EXPORT_COMPLETE_MESSAGE", @"Message indicating that backup export is complete.");
+        NSString *message = @"Backup complete.";
 
         UILabel *label = [UILabel new];
         label.text = message;
@@ -130,9 +128,8 @@ NS_ASSUME_NONNULL_BEGIN
     }
 
     if (self.backup.backupPassword) {
-        NSString *message = [NSString stringWithFormat:NSLocalizedString(@"BACKUP_EXPORT_PASSWORD_MESSAGE_FORMAT",
-                                                           @"Format for message indicating that backup export "
-                                                           @"is complete. Embeds: {{the backup password}}."),
+        NSString *message = [NSString stringWithFormat:@"Your backup password is: %@. Make sure to keep a copy of this "
+                                                       @"password or you won't be able to restore from this backup.",
                                       self.backup.backupPassword];
 
         UILabel *label = [UILabel new];
@@ -148,21 +145,13 @@ NS_ASSUME_NONNULL_BEGIN
     [subviews addObject:[UIView new]];
 
     if (self.backup.backupPassword) {
-        [subviews
-            addObject:[self makeButtonWithTitle:NSLocalizedString(@"BACKUP_EXPORT_COPY_PASSWORD_BUTTON",
-                                                    @"Label for button that copies backup password to the pasteboard.")
-                                       selector:@selector(copyPassword)]];
+        [subviews addObject:[self makeButtonWithTitle:@"Copy Password" selector:@selector(copyPassword)]];
     }
 
-    [subviews addObject:[self makeButtonWithTitle:NSLocalizedString(@"BACKUP_EXPORT_SHARE_BACKUP_BUTTON",
-                                                      @"Label for button that opens share UI for backup.")
-                                         selector:@selector(shareBackup)]];
+    [subviews addObject:[self makeButtonWithTitle:@"Share Backup" selector:@selector(shareBackup)]];
 
     if (self.backup.currentThread) {
-        [subviews
-            addObject:[self makeButtonWithTitle:NSLocalizedString(@"BACKUP_EXPORT_SEND_BACKUP_BUTTON",
-                                                    @"Label for button that 'send backup' in the current conversation.")
-                                       selector:@selector(sendBackup)]];
+        [subviews addObject:[self makeButtonWithTitle:@"Send Backup as Message" selector:@selector(sendBackup)]];
     }
 
     // TODO: We should offer the option to save the backup to "Files", iCloud, Dropbox, etc.
@@ -178,8 +167,7 @@ NS_ASSUME_NONNULL_BEGIN
     NSMutableArray<UIView *> *subviews = [NSMutableArray new];
 
     {
-        NSString *message
-            = NSLocalizedString(@"BACKUP_EXPORT_FAILED_MESSAGE", @"Message indicating that backup export failed.");
+        NSString *message = @"Backup export failed.";
 
         UILabel *label = [UILabel new];
         label.text = message;
@@ -266,17 +254,9 @@ NS_ASSUME_NONNULL_BEGIN
                                                  [modalActivityIndicator dismissWithCompletion:^{
                                                      if (error) {
                                                          DDLogError(@"%@ send backup failed: %@", self.logTag, error);
-                                                         [OWSAlerts
-                                                             showAlertWithTitle:NSLocalizedString(
-                                                                                    @"BACKUP_EXPORT_SEND_BACKUP_FAILED",
-                                                                                    @"Message indicating that sending "
-                                                                                    @"the backup failed.")];
+                                                         [OWSAlerts showAlertWithTitle:@"Sending Backup Failed."];
                                                      } else {
-                                                         [OWSAlerts
-                                                             showAlertWithTitle:
-                                                                 NSLocalizedString(@"BACKUP_EXPORT_SEND_BACKUP_SUCCESS",
-                                                                     @"Message indicating that sending the backup "
-                                                                     @"succeeded.")];
+                                                         [OWSAlerts showAlertWithTitle:@"Backup Sent."];
                                                      }
                                                  }];
                                              }];

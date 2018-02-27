@@ -1347,14 +1347,12 @@ const CGFloat OWSMessageCellCornerRadius = 17;
     OWSAssert(backupZipPath.length > 0);
 
     UIAlertController *controller =
-        [UIAlertController alertControllerWithTitle:NSLocalizedString(@"BACKUP_IMPORT_CONFIRM_ALERT_TITLE",
-                                                        @"Title for alert confirming backup import.")
-                                            message:NSLocalizedString(@"BACKUP_IMPORT_CONFIRM_ALERT_MESSAGE",
-                                                        @"Message for alert confirming backup import.")
+        [UIAlertController alertControllerWithTitle:@"Restore Backup?"
+                                            message:@"To restore this backup you must restart the Signal app. Warning: "
+                                                    @"you will lose all of your current Signal data."
                                      preferredStyle:UIAlertControllerStyleAlert];
 
-    [controller addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"BACKUP_IMPORT_CONFIRM_ALERT_BUTTON",
-                                                             @"Label for button confirming backup import.")
+    [controller addAction:[UIAlertAction actionWithTitle:@"Restore"
                                                    style:UIAlertActionStyleDefault
                                                  handler:^(UIAlertAction *_Nonnull action) {
                                                      [self showBackupImportUI:backupZipPath];
