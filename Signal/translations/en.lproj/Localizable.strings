@@ -1063,7 +1063,7 @@
 "MISSING_MEDIA_LIBRARY_PERMISSION_MESSAGE" = "You can grant this permission in the Settings app.";
 
 /* Alert title when user has previously denied media library access */
-"MISSING_MEDIA_LIBRARY_PERMISSION_TITLE" = "Signal Requires Access to your Media Library to do this.";
+"MISSING_MEDIA_LIBRARY_PERMISSION_TITLE" = "Requires Access to your Media Library";
 
 /* notification title. Embeds {{caller's name or phone number}} */
 "MSGVIEW_MISSED_CALL_WITH_NAME" = "Missed call from %@.";
