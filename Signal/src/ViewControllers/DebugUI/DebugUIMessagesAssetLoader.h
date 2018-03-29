@@ -34,6 +34,8 @@ NS_ASSUME_NONNULL_BEGIN
                               label:(NSString *)label;
 + (instancetype)tinyPdfInstance;
 + (instancetype)largePdfInstance;
++ (instancetype)oldVoiceMemoInstance;
++ (instancetype)newVoiceMemoInstance;
 + (instancetype)missingPngInstance;
 + (instancetype)missingPdfInstance;
 + (instancetype)oversizeTextInstance;

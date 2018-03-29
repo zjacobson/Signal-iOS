@@ -752,6 +752,34 @@ NS_ASSUME_NONNULL_BEGIN
                                   thread:thread];
 }
 
++ (DebugUIMessagesAction *)fakeOutgoingOldVoiceMemoAction:(TSThread *)thread
+                                             messageState:(TSOutgoingMessageState)messageState
+                                               hasCaption:(BOOL)hasCaption
+{
+    OWSAssert(thread);
+
+    return [self fakeOutgoingMediaAction:@"Fake Outgoing Old Voice Memo"
+                            messageState:messageState
+                              hasCaption:hasCaption
+                          isVoiceMessage:YES
+                         fakeAssetLoader:[DebugUIMessagesAssetLoader oldVoiceMemoInstance]
+                                  thread:thread];
+}
+
++ (DebugUIMessagesAction *)fakeOutgoingNewVoiceMemoAction:(TSThread *)thread
+                                             messageState:(TSOutgoingMessageState)messageState
+                                               hasCaption:(BOOL)hasCaption
+{
+    OWSAssert(thread);
+
+    return [self fakeOutgoingMediaAction:@"Fake Outgoing New Voice Memo"
+                            messageState:messageState
+                              hasCaption:hasCaption
+                          isVoiceMessage:YES
+                         fakeAssetLoader:[DebugUIMessagesAssetLoader newVoiceMemoInstance]
+                                  thread:thread];
+}
+
 + (DebugUIMessagesAction *)fakeOutgoingMissingPngAction:(TSThread *)thread
                                            messageState:(TSOutgoingMessageState)messageState
                                              hasCaption:(BOOL)hasCaption
@@ -797,6 +825,21 @@ NS_ASSUME_NONNULL_BEGIN
                                    fakeAssetLoader:(DebugUIMessagesAssetLoader *)fakeAssetLoader
                                             thread:(TSThread *)thread
 {
+    return [self fakeOutgoingMediaAction:labelParam
+                            messageState:messageState
+                              hasCaption:hasCaption
+                          isVoiceMessage:NO
+                         fakeAssetLoader:fakeAssetLoader
+                                  thread:thread];
+}
+
++ (DebugUIMessagesAction *)fakeOutgoingMediaAction:(NSString *)labelParam
+                                      messageState:(TSOutgoingMessageState)messageState
+                                        hasCaption:(BOOL)hasCaption
+                                    isVoiceMessage:(BOOL)isVoiceMessage
+                                   fakeAssetLoader:(DebugUIMessagesAssetLoader *)fakeAssetLoader
+                                            thread:(TSThread *)thread
+{
     OWSAssert(labelParam.length > 0);
     OWSAssert(fakeAssetLoader);
     OWSAssert(thread);
@@ -822,6 +865,7 @@ NS_ASSUME_NONNULL_BEGIN
                                   [self createFakeOutgoingMedia:index
                                                    messageState:messageState
                                                      hasCaption:hasCaption
+                                                 isVoiceMessage:isVoiceMessage
                                                 fakeAssetLoader:fakeAssetLoader
                                                          thread:thread
                                                     transaction:transaction];
@@ -832,6 +876,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)createFakeOutgoingMedia:(NSUInteger)index
                    messageState:(TSOutgoingMessageState)messageState
                      hasCaption:(BOOL)hasCaption
+                 isVoiceMessage:(BOOL)isVoiceMessage
                 fakeAssetLoader:(DebugUIMessagesAssetLoader *)fakeAssetLoader
                          thread:(TSThread *)thread
                     transaction:(YapDatabaseReadWriteTransaction *)transaction
@@ -871,7 +916,7 @@ NS_ASSUME_NONNULL_BEGIN
     TSOutgoingMessage *message = [[TSOutgoingMessage alloc] initWithTimestamp:timestamp
                                                                      inThread:thread
                                                                   messageBody:messageBody
-                                                               isVoiceMessage:NO
+                                                               isVoiceMessage:isVoiceMessage
                                                              expiresInSeconds:0];
     [message setReceivedAtTimestamp:timestamp];
 
@@ -1085,6 +1130,32 @@ NS_ASSUME_NONNULL_BEGIN
                   isAttachmentDownloaded:isAttachmentDownloaded
                               hasCaption:hasCaption
                          fakeAssetLoader:[DebugUIMessagesAssetLoader largePdfInstance]
+                                  thread:thread];
+}
+
++ (DebugUIMessagesAction *)fakeIncomingOldVoiceMemoAction:(TSThread *)thread
+                                   isAttachmentDownloaded:(BOOL)isAttachmentDownloaded
+                                               hasCaption:(BOOL)hasCaption
+{
+    OWSAssert(thread);
+
+    return [self fakeIncomingMediaAction:@"Fake Incoming Old Voice Memo"
+                  isAttachmentDownloaded:isAttachmentDownloaded
+                              hasCaption:hasCaption
+                         fakeAssetLoader:[DebugUIMessagesAssetLoader oldVoiceMemoInstance]
+                                  thread:thread];
+}
+
++ (DebugUIMessagesAction *)fakeIncomingNewVoiceMemoAction:(TSThread *)thread
+                                   isAttachmentDownloaded:(BOOL)isAttachmentDownloaded
+                                               hasCaption:(BOOL)hasCaption
+{
+    OWSAssert(thread);
+
+    return [self fakeIncomingMediaAction:@"Fake Incoming New Voice Memo"
+                  isAttachmentDownloaded:isAttachmentDownloaded
+                              hasCaption:hasCaption
+                         fakeAssetLoader:[DebugUIMessagesAssetLoader newVoiceMemoInstance]
                                   thread:thread];
 }
 
@@ -1504,6 +1575,19 @@ NS_ASSUME_NONNULL_BEGIN
     if (includeLabels) {
         [actions addObject:[self fakeOutgoingTextMessageAction:thread
                                                   messageState:TSOutgoingMessageStateSentToService
+                                                          text:@"⚠️ Outgoing Voice Memo ⚠️"]];
+    }
+    [actions addObjectsFromArray:@[
+        [self fakeOutgoingOldVoiceMemoAction:thread messageState:TSOutgoingMessageStateAttemptingOut hasCaption:NO],
+        [self fakeOutgoingOldVoiceMemoAction:thread messageState:TSOutgoingMessageStateUnsent hasCaption:NO],
+        [self fakeOutgoingOldVoiceMemoAction:thread messageState:TSOutgoingMessageStateSentToService hasCaption:NO],
+        [self fakeOutgoingNewVoiceMemoAction:thread messageState:TSOutgoingMessageStateAttemptingOut hasCaption:NO],
+        [self fakeOutgoingNewVoiceMemoAction:thread messageState:TSOutgoingMessageStateUnsent hasCaption:NO],
+        [self fakeOutgoingNewVoiceMemoAction:thread messageState:TSOutgoingMessageStateSentToService hasCaption:NO],
+    ]];
+    if (includeLabels) {
+        [actions addObject:[self fakeOutgoingTextMessageAction:thread
+                                                  messageState:TSOutgoingMessageStateSentToService
                                                           text:@"⚠️ Outgoing Large Pdf ⚠️"]];
     }
     [actions addObjectsFromArray:@[
@@ -1678,6 +1762,13 @@ NS_ASSUME_NONNULL_BEGIN
     }
     [actions addObjectsFromArray:@[
         [self fakeIncomingLargePdfAction:thread isAttachmentDownloaded:YES hasCaption:NO],
+    ]];
+    if (includeLabels) {
+        [actions addObject:[self fakeIncomingTextMessageAction:thread text:@"⚠️ Incoming Voice Memo ⚠️"]];
+    }
+    [actions addObjectsFromArray:@[
+        [self fakeIncomingOldVoiceMemoAction:thread isAttachmentDownloaded:YES hasCaption:NO],
+        [self fakeIncomingNewVoiceMemoAction:thread isAttachmentDownloaded:YES hasCaption:NO],
     ]];
     if (includeLabels) {
         [actions addObject:[self fakeIncomingTextMessageAction:thread text:@"⚠️ Incoming Missing Png ⚠️"]];

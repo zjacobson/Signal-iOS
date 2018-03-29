@@ -477,6 +477,26 @@ NS_ASSUME_NONNULL_BEGIN
     return instance;
 }
 
++ (instancetype)oldVoiceMemoInstance
+{
+    static DebugUIMessagesAssetLoader *instance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        instance = [DebugUIMessagesAssetLoader fakeRandomAssetLoaderWithLength:256 mimeType:@"audio/aac"];
+    });
+    return instance;
+}
+
++ (instancetype)newVoiceMemoInstance
+{
+    static DebugUIMessagesAssetLoader *instance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        instance = [DebugUIMessagesAssetLoader fakeRandomAssetLoaderWithLength:256 mimeType:@"audio/mp4"];
+    });
+    return instance;
+}
+
 + (instancetype)largePdfInstance
 {
     static DebugUIMessagesAssetLoader *instance = nil;
