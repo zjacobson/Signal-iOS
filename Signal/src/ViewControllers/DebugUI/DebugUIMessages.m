@@ -1989,6 +1989,7 @@ NS_ASSUME_NONNULL_BEGIN
         @"1️⃣2️⃣3️⃣",
         @"落",
         @"﷽",
+        @"This is LTR text. This isn't: ﷽",
     ];
 
     NSMutableArray<DebugUIMessagesAction *> *actions = [NSMutableArray new];

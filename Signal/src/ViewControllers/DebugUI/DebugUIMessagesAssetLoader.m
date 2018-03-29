@@ -482,6 +482,7 @@ NS_ASSUME_NONNULL_BEGIN
     static DebugUIMessagesAssetLoader *instance = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
+        // TODO: Use valid mp4.
         instance = [DebugUIMessagesAssetLoader fakeRandomAssetLoaderWithLength:256 mimeType:@"audio/aac"];
     });
     return instance;
@@ -492,6 +493,7 @@ NS_ASSUME_NONNULL_BEGIN
     static DebugUIMessagesAssetLoader *instance = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
+        // TODO: Use valid mp4.
         instance = [DebugUIMessagesAssetLoader fakeRandomAssetLoaderWithLength:256 mimeType:@"audio/mp4"];
     });
     return instance;
