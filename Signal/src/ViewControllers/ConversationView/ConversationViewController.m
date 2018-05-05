@@ -145,8 +145,8 @@ typedef enum : NSUInteger {
 // Show message info animation
 @property (nullable, nonatomic) UIPercentDrivenInteractiveTransition *showMessageDetailsTransition;
 @property (nullable, nonatomic) UIPanGestureRecognizer *currentShowMessageDetailsPanGesture;
-@property (nonatomic) CGPoint panStartingPoint;
-@property (nonatomic) CGRect panStartingFrame;
+@property (nonatomic) CGPoint showDetailsInteractivePanTouchStartingPoint;
+@property (nonatomic) CGRect showDetailsInteractivePanStartingFrame;
 
 @property (nonatomic) TSThread *thread;
 @property (nonatomic) YapDatabaseConnection *editingDatabaseConnection;
@@ -4817,84 +4817,91 @@ typedef enum : NSUInteger {
 
     const CGFloat swipeTranslation
         = ([gestureRecognizer translationInView:self.view].x * (self.view.isRTL ? +1.f : -1.f));
-    const CGFloat ratioComplete = CGFloatClamp(swipeTranslation / self.view.frame.size.width, 0, 1);
+
+    // Don't start the transition until the user has panned a bit.
+    // This allows us to show immediate feedback with the pan gesture, without starting the more
+    // expensive presentation operation.
+    const CGFloat transitionThreshold = 20;
+
+    const CGFloat ratioComplete = CGFloatClamp(
+        (swipeTranslation - transitionThreshold) / (self.view.frame.size.width - transitionThreshold), 0, 1);
+
+    void (^endPanGesture)(void) = ^() {
+        DDLogDebug(@"%@ endPanGesture", self.logTag);
+        self.showMessageDetailsTransition = nil;
+
+        [UIView animateWithDuration:0.2
+                              delay:0
+                            options:UIViewAnimationOptionCurveEaseOut
+                         animations:^{
+                             gestureRecognizer.view.frame = self.showDetailsInteractivePanStartingFrame;
+                         }
+                         completion:nil];
+
+    };
 
     switch (gestureRecognizer.state) {
         case UIGestureRecognizerStateBegan: {
-            // MJK
-            // TODO assert gestureRecognizer.view is bubbleview
-            self.panStartingPoint = [gestureRecognizer locationInView:gestureRecognizer.view];
-            self.panStartingFrame = gestureRecognizer.view.frame;
-//            TSInteraction *interaction = conversationItem.interaction;
-//            if ([interaction isKindOfClass:[TSIncomingMessage class]] ||
-//                [interaction isKindOfClass:[TSOutgoingMessage class]]) {
-//
-//                // Canary check in case we later have another reason to set navigationController.delegate - we don't
-//                // want to inadvertently clobber it here.
-//                OWSAssert(self.navigationController.delegate == nil);
-//                self.navigationController.delegate = self;
-//
-//                [self showMetadataViewForViewItem:conversationItem];
-//            } else {
-//                OWSFail(@"%@ Can't show message metadata for message of type: %@", self.logTag, [interaction class]);
-//            }
+            OWSAssert([gestureRecognizer.view isKindOfClass:[OWSMessageCell class]]);
+            self.showDetailsInteractivePanTouchStartingPoint =
+                [gestureRecognizer locationInView:gestureRecognizer.view];
+            self.showDetailsInteractivePanStartingFrame = gestureRecognizer.view.frame;
             break;
         }
         case UIGestureRecognizerStateChanged: {
             CGPoint panCurrentPoint = [gestureRecognizer locationInView:gestureRecognizer.view];
-            OWSAssert(!CGPointEqualToPoint(self.panStartingPoint, CGPointZero));
-            
-            CGFloat dx = MIN(0, panCurrentPoint.x - self.panStartingPoint.x);
+            OWSAssert(!CGPointEqualToPoint(self.showDetailsInteractivePanTouchStartingPoint, CGPointZero));
+
+            CGFloat dx = MIN(0, panCurrentPoint.x - self.showDetailsInteractivePanTouchStartingPoint.x);
             gestureRecognizer.view.frame = CGRectOffset(gestureRecognizer.view.frame, dx, 0);
-            
-//            UIPercentDrivenInteractiveTransition *transition = self.showMessageDetailsTransition;
-//            if (!transition) {
-//                DDLogVerbose(@"%@ transition not set up yet", self.logTag);
-//                return;
-//            }
-//            [transition updateInteractiveTransition:ratioComplete];
+
+            if (ratioComplete <= 0) {
+                // Don't start the transition until the user has panned a bit.
+                break;
+            }
+
+            UIPercentDrivenInteractiveTransition *_Nullable transition = self.showMessageDetailsTransition;
+            if (!transition) {
+                // start transition
+                OWSAssert([conversationItem.interaction isKindOfClass:[TSIncomingMessage class]] ||
+                    [conversationItem.interaction isKindOfClass:[TSOutgoingMessage class]]);
+
+                self.navigationController.delegate = self;
+                [self showMetadataViewForViewItem:conversationItem];
+            } else {
+                [transition updateInteractiveTransition:ratioComplete];
+            }
             break;
         }
         case UIGestureRecognizerStateEnded: {
-            // TODO animate view back to where it started. (and when canceled/failed)
-            [UIView animateWithDuration:0.2
-                                  delay:0
-                                options:UIViewAnimationOptionCurveEaseOut
-                             animations:^{
-                                 gestureRecognizer.view.frame = self.panStartingFrame;
-                             }
-                             completion:^(BOOL finished) {
-                                 
-                             }
-             ];
-            
-            
-//            const CGFloat velocity = [gestureRecognizer velocityInView:self.view].x;
-//
-//            UIPercentDrivenInteractiveTransition *transition = self.showMessageDetailsTransition;
-//            if (!transition) {
-//                DDLogVerbose(@"%@ transition not set up yet", self.logTag);
-//                return;
-//            }
-//
-//            // Complete the transition if moved sufficiently far or fast
-//            // Note this is trickier for incoming, since you are already on the left, and have less space.
-//            if (ratioComplete > 0.3 || velocity < -800) {
-//                [transition finishInteractiveTransition];
-//            } else {
-//                [transition cancelInteractiveTransition];
-//            }
+            UIPercentDrivenInteractiveTransition *_Nullable transition = self.showMessageDetailsTransition;
+            if (transition) {
+                const CGFloat velocity = [gestureRecognizer velocityInView:self.view].x;
+
+                // Complete the transition if moved sufficiently far or fast
+                // Note this is trickier for incoming messages, especially short ones, since you are already on the
+                // left, and have less space. Ultimately we should probably remove this interaction from incoming
+                // messages as there isn't much useful detail in the message details screen anyway, but currently it's
+                // the only place to get the "sent" time.
+                if (ratioComplete > 0.3 || velocity < -800) {
+                    DDLogDebug(@"%@ finishing transition", self.logTag);
+                    [transition finishInteractiveTransition];
+                } else {
+                    [transition cancelInteractiveTransition];
+                }
+            }
+
+            endPanGesture();
             break;
         }
         case UIGestureRecognizerStateCancelled:
         case UIGestureRecognizerStateFailed: {
-//            UIPercentDrivenInteractiveTransition *transition = self.showMessageDetailsTransition;
-//            if (!transition) {
-//                DDLogVerbose(@"%@ transition not set up yet", self.logTag);
-//                return;
-//            }
-//
-//            [transition cancelInteractiveTransition];
+            UIPercentDrivenInteractiveTransition *_Nullable transition = self.showMessageDetailsTransition;
+            if (transition) {
+                [transition cancelInteractiveTransition];
+            }
+
+            endPanGesture();
             break;
         }
         default:
@@ -4908,7 +4915,11 @@ typedef enum : NSUInteger {
                                                         fromViewController:(UIViewController *)fromVC
                                                           toViewController:(UIViewController *)toVC
 {
-    return [SlideOffAnimatedTransition new];
+    if ([toVC isKindOfClass:[MessageDetailViewController class]]) {
+        return [SlideOffAnimatedTransition new];
+    }
+
+    return nil;
 }
 
 - (nullable id<UIViewControllerInteractiveTransitioning>)
@@ -4919,20 +4930,17 @@ interactionControllerForAnimationController:(id<UIViewControllerAnimatedTransiti
     // animation But we may not want to be the navigation controller delegate permanently.
     self.navigationController.delegate = nil;
 
-    UIPanGestureRecognizer *recognizer = self.currentShowMessageDetailsPanGesture;
-    if (recognizer == nil) {
-        // Not in the middle of the `currentShowMessageDetailsPanGesture`, abort.
-        return nil;
+    if ([animationController isKindOfClass:[SlideOffAnimatedTransition class]]) {
+        UIPercentDrivenInteractiveTransition *transition = [UIPercentDrivenInteractiveTransition new];
+        transition.completionCurve = UIViewAnimationCurveEaseOut;
+
+        OWSAssert(self.showMessageDetailsTransition == nil);
+        self.showMessageDetailsTransition = transition;
+
+        return transition;
     }
 
-    if (recognizer.state == UIGestureRecognizerStateBegan) {
-        self.showMessageDetailsTransition = [UIPercentDrivenInteractiveTransition new];
-        self.showMessageDetailsTransition.completionCurve = UIViewAnimationCurveEaseOut;
-    } else {
-        self.showMessageDetailsTransition = nil;
-    }
-
-    return self.showMessageDetailsTransition;
+    return nil;
 }
 
 #pragma mark - UICollectionViewDelegate
