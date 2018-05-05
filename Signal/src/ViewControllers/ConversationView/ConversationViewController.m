@@ -2290,9 +2290,7 @@ typedef enum : NSUInteger {
 
     TSMessage *message = (TSMessage *)conversationItem.interaction;
     MessageDetailViewController *view =
-        [[MessageDetailViewController alloc] initWithViewItem:conversationItem
-                                                      message:message
-                                                         mode:MessageMetadataViewModeFocusOnMetadata];
+        [[MessageDetailViewController alloc] initWithViewItem:conversationItem message:message];
     [self.navigationController pushViewController:view animated:YES];
 }
 

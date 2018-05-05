@@ -6,12 +6,6 @@ import Foundation
 import SignalServiceKit
 import SignalMessaging
 
-@objc
-enum MessageMetadataViewMode: UInt {
-    case focusOnMessage
-    case focusOnMetadata
-}
-
 class MessageDetailViewController: OWSViewController, MediaGalleryDataSourceDelegate, OWSMessageBubbleViewDelegate {
 
     // MARK: Properties
@@ -23,7 +17,6 @@ class MessageDetailViewController: OWSViewController, MediaGalleryDataSourceDele
     let bubbleFactory = OWSMessagesBubbleImageFactory()
     var bubbleView: UIView?
 
-    let mode: MessageMetadataViewMode
     let viewItem: ConversationViewItem
     var message: TSMessage
     var wasDeleted: Bool = false
@@ -47,11 +40,10 @@ class MessageDetailViewController: OWSViewController, MediaGalleryDataSourceDele
         fatalError("\(#function) is unimplemented.")
     }
 
-    required init(viewItem: ConversationViewItem, message: TSMessage, mode: MessageMetadataViewMode) {
+    required init(viewItem: ConversationViewItem, message: TSMessage) {
         self.contactsManager = Environment.current().contactsManager
         self.viewItem = viewItem
         self.message = message
-        self.mode = mode
         self.uiDatabaseConnection = OWSPrimaryStorage.shared().newDatabaseConnection()
 
         super.init(nibName: nil, bundle: nil)
@@ -83,30 +75,31 @@ class MessageDetailViewController: OWSViewController, MediaGalleryDataSourceDele
 
         updateMessageBubbleViewLayout()
 
-        if mode == .focusOnMetadata {
-            if let bubbleView = self.bubbleView {
-                // Force layout.
-                view.setNeedsLayout()
-                view.layoutIfNeeded()
-
-                let contentHeight = scrollView.contentSize.height
-                let scrollViewHeight = scrollView.frame.size.height
-                guard contentHeight >=  scrollViewHeight else {
-                    // All content is visible within the scroll view. No need to offset.
-                    return
-                }
-
-                // We want to include at least a little portion of the message, but scroll no farther than necessary.
-                let showAtLeast: CGFloat = 50
-                let bubbleViewBottom = bubbleView.superview!.convert(bubbleView.frame, to: scrollView).maxY
-                let maxOffset =  bubbleViewBottom - showAtLeast
-                let lastPage = contentHeight - scrollViewHeight
-
-                let offset = CGPoint(x: 0, y: min(maxOffset, lastPage))
-
-                scrollView.setContentOffset(offset, animated: false)
-            }
+        guard let bubbleView = self.bubbleView else {
+            owsFail("\(logTag) in \(#function) bubbleView was unexpectedly nil")
+            return
         }
+
+        // Force layout.
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+
+        let contentHeight = scrollView.contentSize.height
+        let scrollViewHeight = scrollView.frame.size.height
+        guard contentHeight >=  scrollViewHeight else {
+            // All content is visible within the scroll view. No need to offset.
+            return
+        }
+
+        // We want to include at least a little portion of the message, but scroll no farther than necessary.
+        let showAtLeast: CGFloat = 50
+        let bubbleViewBottom = bubbleView.superview!.convert(bubbleView.frame, to: scrollView).maxY
+        let maxOffset =  bubbleViewBottom - showAtLeast
+        let lastPage = contentHeight - scrollViewHeight
+
+        let offset = CGPoint(x: 0, y: min(maxOffset, lastPage))
+
+        scrollView.setContentOffset(offset, animated: false)
     }
 
     // MARK: - Create Views
