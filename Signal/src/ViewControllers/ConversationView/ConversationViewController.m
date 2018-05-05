@@ -4849,25 +4849,28 @@ typedef enum : NSUInteger {
             break;
         }
         case UIGestureRecognizerStateChanged: {
-            CGPoint panCurrentPoint = [gestureRecognizer locationInView:gestureRecognizer.view];
-            OWSAssert(!CGPointEqualToPoint(self.showDetailsInteractivePanTouchStartingPoint, CGPointZero));
-
-            CGFloat dx = MIN(0, panCurrentPoint.x - self.showDetailsInteractivePanTouchStartingPoint.x);
-            gestureRecognizer.view.frame = CGRectOffset(gestureRecognizer.view.frame, dx, 0);
-
-            if (ratioComplete <= 0) {
-                // Don't start the transition until the user has panned a bit.
-                break;
-            }
-
             UIPercentDrivenInteractiveTransition *_Nullable transition = self.showMessageDetailsTransition;
             if (!transition) {
-                // start transition
-                OWSAssert([conversationItem.interaction isKindOfClass:[TSIncomingMessage class]] ||
-                    [conversationItem.interaction isKindOfClass:[TSOutgoingMessage class]]);
+                CGPoint panCurrentPoint = [gestureRecognizer locationInView:gestureRecognizer.view];
+                OWSAssert(!CGPointEqualToPoint(self.showDetailsInteractivePanTouchStartingPoint, CGPointZero));
 
-                self.navigationController.delegate = self;
-                [self showMetadataViewForViewItem:conversationItem];
+                CGFloat dx = panCurrentPoint.x - self.showDetailsInteractivePanTouchStartingPoint.x;
+                CGRect newFrame = CGRectOffset(gestureRecognizer.view.frame, dx, 0);
+                DDLogDebug(@"%@ newFrame: %@", self.logTag, NSStringFromCGRect(newFrame));
+                if (newFrame.origin.x > self.showDetailsInteractivePanStartingFrame.origin.x) {
+                    // Never move back beyond the starting frame
+                    newFrame = self.showDetailsInteractivePanStartingFrame;
+                }
+                gestureRecognizer.view.frame = newFrame;
+
+                // Don't start the transition until the user's panned a bit.
+                if (ratioComplete > 0) {
+                    OWSAssert([conversationItem.interaction isKindOfClass:[TSIncomingMessage class]] ||
+                        [conversationItem.interaction isKindOfClass:[TSOutgoingMessage class]]);
+
+                    self.navigationController.delegate = self;
+                    [self showMetadataViewForViewItem:conversationItem];
+                }
             } else {
                 [transition updateInteractiveTransition:ratioComplete];
             }
