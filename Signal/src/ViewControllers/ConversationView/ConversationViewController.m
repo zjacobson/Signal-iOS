@@ -4812,6 +4812,7 @@ typedef enum : NSUInteger {
 
 - (void)didPanWithGestureRecognizer:(UIPanGestureRecognizer *)gestureRecognizer
                            viewItem:(ConversationViewItem *)conversationItem
+                  messageBubbleView:(OWSMessageBubbleView *)messageBubbleView
 {
     self.currentShowMessageDetailsPanGesture = gestureRecognizer;
 
@@ -4834,7 +4835,7 @@ typedef enum : NSUInteger {
                               delay:0
                             options:UIViewAnimationOptionCurveEaseOut
                          animations:^{
-                             gestureRecognizer.view.frame = self.showDetailsInteractivePanStartingFrame;
+                             messageBubbleView.frame = self.showDetailsInteractivePanStartingFrame;
                          }
                          completion:nil];
 
@@ -4843,25 +4844,24 @@ typedef enum : NSUInteger {
     switch (gestureRecognizer.state) {
         case UIGestureRecognizerStateBegan: {
             OWSAssert([gestureRecognizer.view isKindOfClass:[OWSMessageCell class]]);
-            self.showDetailsInteractivePanTouchStartingPoint =
-                [gestureRecognizer locationInView:gestureRecognizer.view];
-            self.showDetailsInteractivePanStartingFrame = gestureRecognizer.view.frame;
+            self.showDetailsInteractivePanTouchStartingPoint = [gestureRecognizer locationInView:messageBubbleView];
+            self.showDetailsInteractivePanStartingFrame = messageBubbleView.frame;
             break;
         }
         case UIGestureRecognizerStateChanged: {
             UIPercentDrivenInteractiveTransition *_Nullable transition = self.showMessageDetailsTransition;
             if (!transition) {
-                CGPoint panCurrentPoint = [gestureRecognizer locationInView:gestureRecognizer.view];
+                CGPoint panCurrentPoint = [gestureRecognizer locationInView:messageBubbleView];
                 OWSAssert(!CGPointEqualToPoint(self.showDetailsInteractivePanTouchStartingPoint, CGPointZero));
 
                 CGFloat dx = panCurrentPoint.x - self.showDetailsInteractivePanTouchStartingPoint.x;
-                CGRect newFrame = CGRectOffset(gestureRecognizer.view.frame, dx, 0);
+                CGRect newFrame = CGRectOffset(messageBubbleView.frame, dx, 0);
                 DDLogDebug(@"%@ newFrame: %@", self.logTag, NSStringFromCGRect(newFrame));
                 if (newFrame.origin.x > self.showDetailsInteractivePanStartingFrame.origin.x) {
                     // Never move back beyond the starting frame
                     newFrame = self.showDetailsInteractivePanStartingFrame;
                 }
-                gestureRecognizer.view.frame = newFrame;
+                messageBubbleView.frame = newFrame;
 
                 // Don't start the transition until the user's panned a bit.
                 if (ratioComplete > 0) {

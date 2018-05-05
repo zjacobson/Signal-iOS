@@ -561,7 +561,9 @@ NS_ASSUME_NONNULL_BEGIN
 {
     OWSAssert(self.delegate);
 
-    [self.delegate didPanWithGestureRecognizer:panRecognizer viewItem:self.viewItem];
+    [self.delegate didPanWithGestureRecognizer:panRecognizer
+                                      viewItem:self.viewItem
+                             messageBubbleView:self.messageBubbleView];
 }
 
 #pragma mark - UIMenuController

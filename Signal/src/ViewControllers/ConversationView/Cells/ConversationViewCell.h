@@ -7,6 +7,7 @@ NS_ASSUME_NONNULL_BEGIN
 @class ConversationViewCell;
 @class ConversationViewItem;
 @class OWSContactOffersInteraction;
+@class OWSMessageBubbleView;
 @class TSAttachmentPointer;
 @class TSAttachmentStream;
 @class TSInteraction;
@@ -18,7 +19,8 @@ NS_ASSUME_NONNULL_BEGIN
 @protocol ConversationViewCellDelegate <NSObject>
 
 - (void)didPanWithGestureRecognizer:(UIPanGestureRecognizer *)gestureRecognizer
-                           viewItem:(ConversationViewItem *)conversationItem;
+                           viewItem:(ConversationViewItem *)conversationItem
+                  messageBubbleView:(OWSMessageBubbleView *)messageBubbleView;
 
 - (void)showMetadataViewForViewItem:(ConversationViewItem *)conversationItem;
 - (void)conversationCell:(ConversationViewCell *)cell didTapReplyForViewItem:(ConversationViewItem *)conversationItem;
