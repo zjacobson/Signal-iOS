@@ -145,6 +145,8 @@ typedef enum : NSUInteger {
 // Show message info animation
 @property (nullable, nonatomic) UIPercentDrivenInteractiveTransition *showMessageDetailsTransition;
 @property (nullable, nonatomic) UIPanGestureRecognizer *currentShowMessageDetailsPanGesture;
+@property (nonatomic) CGPoint panStartingPoint;
+@property (nonatomic) CGRect panStartingFrame;
 
 @property (nonatomic) TSThread *thread;
 @property (nonatomic) YapDatabaseConnection *editingDatabaseConnection;
@@ -4819,57 +4821,80 @@ typedef enum : NSUInteger {
 
     switch (gestureRecognizer.state) {
         case UIGestureRecognizerStateBegan: {
-            TSInteraction *interaction = conversationItem.interaction;
-            if ([interaction isKindOfClass:[TSIncomingMessage class]] ||
-                [interaction isKindOfClass:[TSOutgoingMessage class]]) {
-
-                // Canary check in case we later have another reason to set navigationController.delegate - we don't
-                // want to inadvertently clobber it here.
-                OWSAssert(self.navigationController.delegate == nil);
-                self.navigationController.delegate = self;
-
-                [self showMetadataViewForViewItem:conversationItem];
-            } else {
-                OWSFail(@"%@ Can't show message metadata for message of type: %@", self.logTag, [interaction class]);
-            }
+            // MJK
+            // TODO assert gestureRecognizer.view is bubbleview
+            self.panStartingPoint = [gestureRecognizer locationInView:gestureRecognizer.view];
+            self.panStartingFrame = gestureRecognizer.view.frame;
+//            TSInteraction *interaction = conversationItem.interaction;
+//            if ([interaction isKindOfClass:[TSIncomingMessage class]] ||
+//                [interaction isKindOfClass:[TSOutgoingMessage class]]) {
+//
+//                // Canary check in case we later have another reason to set navigationController.delegate - we don't
+//                // want to inadvertently clobber it here.
+//                OWSAssert(self.navigationController.delegate == nil);
+//                self.navigationController.delegate = self;
+//
+//                [self showMetadataViewForViewItem:conversationItem];
+//            } else {
+//                OWSFail(@"%@ Can't show message metadata for message of type: %@", self.logTag, [interaction class]);
+//            }
             break;
         }
         case UIGestureRecognizerStateChanged: {
-            UIPercentDrivenInteractiveTransition *transition = self.showMessageDetailsTransition;
-            if (!transition) {
-                DDLogVerbose(@"%@ transition not set up yet", self.logTag);
-                return;
-            }
-            [transition updateInteractiveTransition:ratioComplete];
+            CGPoint panCurrentPoint = [gestureRecognizer locationInView:gestureRecognizer.view];
+            OWSAssert(!CGPointEqualToPoint(self.panStartingPoint, CGPointZero));
+            
+            CGFloat dx = MIN(0, panCurrentPoint.x - self.panStartingPoint.x);
+            gestureRecognizer.view.frame = CGRectOffset(gestureRecognizer.view.frame, dx, 0);
+            
+//            UIPercentDrivenInteractiveTransition *transition = self.showMessageDetailsTransition;
+//            if (!transition) {
+//                DDLogVerbose(@"%@ transition not set up yet", self.logTag);
+//                return;
+//            }
+//            [transition updateInteractiveTransition:ratioComplete];
             break;
         }
         case UIGestureRecognizerStateEnded: {
-            const CGFloat velocity = [gestureRecognizer velocityInView:self.view].x;
-
-            UIPercentDrivenInteractiveTransition *transition = self.showMessageDetailsTransition;
-            if (!transition) {
-                DDLogVerbose(@"%@ transition not set up yet", self.logTag);
-                return;
-            }
-
-            // Complete the transition if moved sufficiently far or fast
-            // Note this is trickier for incoming, since you are already on the left, and have less space.
-            if (ratioComplete > 0.3 || velocity < -800) {
-                [transition finishInteractiveTransition];
-            } else {
-                [transition cancelInteractiveTransition];
-            }
+            // TODO animate view back to where it started. (and when canceled/failed)
+            [UIView animateWithDuration:0.2
+                                  delay:0
+                                options:UIViewAnimationOptionCurveEaseOut
+                             animations:^{
+                                 gestureRecognizer.view.frame = self.panStartingFrame;
+                             }
+                             completion:^(BOOL finished) {
+                                 
+                             }
+             ];
+            
+            
+//            const CGFloat velocity = [gestureRecognizer velocityInView:self.view].x;
+//
+//            UIPercentDrivenInteractiveTransition *transition = self.showMessageDetailsTransition;
+//            if (!transition) {
+//                DDLogVerbose(@"%@ transition not set up yet", self.logTag);
+//                return;
+//            }
+//
+//            // Complete the transition if moved sufficiently far or fast
+//            // Note this is trickier for incoming, since you are already on the left, and have less space.
+//            if (ratioComplete > 0.3 || velocity < -800) {
+//                [transition finishInteractiveTransition];
+//            } else {
+//                [transition cancelInteractiveTransition];
+//            }
             break;
         }
         case UIGestureRecognizerStateCancelled:
         case UIGestureRecognizerStateFailed: {
-            UIPercentDrivenInteractiveTransition *transition = self.showMessageDetailsTransition;
-            if (!transition) {
-                DDLogVerbose(@"%@ transition not set up yet", self.logTag);
-                return;
-            }
-
-            [transition cancelInteractiveTransition];
+//            UIPercentDrivenInteractiveTransition *transition = self.showMessageDetailsTransition;
+//            if (!transition) {
+//                DDLogVerbose(@"%@ transition not set up yet", self.logTag);
+//                return;
+//            }
+//
+//            [transition cancelInteractiveTransition];
             break;
         }
         default:
