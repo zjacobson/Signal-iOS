@@ -15,7 +15,6 @@ class MessageDetailViewController: OWSViewController, MediaGalleryDataSourceDele
     let uiDatabaseConnection: YapDatabaseConnection
 
     let bubbleFactory = OWSMessagesBubbleImageFactory()
-    var bubbleView: UIView?
 
     let viewItem: ConversationViewItem
     var message: TSMessage
@@ -75,29 +74,29 @@ class MessageDetailViewController: OWSViewController, MediaGalleryDataSourceDele
 
         updateMessageBubbleViewLayout()
 
-        guard let bubbleView = self.bubbleView else {
-            owsFail("\(logTag) in \(#function) bubbleView was unexpectedly nil")
-            return
-        }
-
-        // Force layout.
-        view.setNeedsLayout()
+        // Ensure layout, so we can get accurate contentHeight
         view.layoutIfNeeded()
 
         let contentHeight = scrollView.contentSize.height
         let scrollViewHeight = scrollView.frame.size.height
-        guard contentHeight >=  scrollViewHeight else {
+
+        guard contentHeight >= scrollViewHeight else {
             // All content is visible within the scroll view. No need to offset.
+            return
+        }
+
+        guard let messageBubbleView = messageBubbleView else {
+            owsFail("\(logTag) in \(#function) messageBubbleView was unexpectedly nil")
             return
         }
 
         // We want to include at least a little portion of the message, but scroll no farther than necessary.
         let showAtLeast: CGFloat = 50
-        let bubbleViewBottom = bubbleView.superview!.convert(bubbleView.frame, to: scrollView).maxY
+        let bubbleViewBottom = messageBubbleView.superview!.convert(messageBubbleView.frame, to: scrollView).maxY
         let maxOffset =  bubbleViewBottom - showAtLeast
-        let lastPage = contentHeight - scrollViewHeight
+        let topOfLastPage = contentHeight - scrollViewHeight
 
-        let offset = CGPoint(x: 0, y: min(maxOffset, lastPage))
+        let offset = CGPoint(x: 0, y: min(maxOffset, topOfLastPage))
 
         scrollView.setContentOffset(offset, animated: false)
     }
