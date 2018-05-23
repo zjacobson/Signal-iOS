@@ -70,7 +70,6 @@ class CallViewController: OWSViewController, CallObserver, CallServiceObserver, 
 
     var remoteVideoView: RemoteVideoView!
     var localVideoView: RTCCameraPreviewView!
-    weak var localVideoTrack: RTCVideoTrack?
     weak var remoteVideoTrack: RTCVideoTrack?
     var localVideoConstraints: [NSLayoutConstraint] = []
 
@@ -976,18 +975,15 @@ class CallViewController: OWSViewController, CallObserver, CallServiceObserver, 
 
     // MARK: - Video
 
-    internal func updateLocalVideoTrack(localVideoTrack: RTCVideoTrack?) {
+    internal func updateLocalVideo(captureSession: AVCaptureSession?) {
         SwiftAssertIsOnMainThread(#function)
-        guard self.localVideoTrack != localVideoTrack else {
+        guard localVideoView.captureSession != captureSession else {
             return
         }
 
-        self.localVideoTrack = localVideoTrack
+        localVideoView.captureSession = captureSession
+        let isHidden = captureSession == nil
 
-        let source = localVideoTrack?.source as? RTCAVFoundationVideoSource
-
-        localVideoView.captureSession = source?.captureSession
-        let isHidden = source == nil
         Logger.info("\(TAG) \(#function) isHidden: \(isHidden)")
         localVideoView.isHidden = isHidden
 
@@ -1088,11 +1084,11 @@ class CallViewController: OWSViewController, CallObserver, CallServiceObserver, 
     }
 
     internal func didUpdateVideoTracks(call: SignalCall?,
-                                       localVideoTrack: RTCVideoTrack?,
+                                       localCaptureSession: AVCaptureSession?,
                                        remoteVideoTrack: RTCVideoTrack?) {
         SwiftAssertIsOnMainThread(#function)
 
-        updateLocalVideoTrack(localVideoTrack: localVideoTrack)
+        updateLocalVideo(captureSession: localCaptureSession)
         updateRemoteVideoTrack(remoteVideoTrack: remoteVideoTrack)
     }
 }

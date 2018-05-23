@@ -58,7 +58,7 @@ protocol PeerConnectionClientDelegate: class {
     /**
      * Fired whenever the local video track become active or inactive.
      */
-    func peerConnectionClient(_ peerconnectionClient: PeerConnectionClient, didUpdateLocal videoTrack: RTCVideoTrack?)
+    func peerConnectionClient(_ peerconnectionClient: PeerConnectionClient, didUpdateLocalVideoCaptureSession videoCaptureSession: AVCaptureSession?)
 
     /**
      * Fired whenever the remote video track become active or inactive.
@@ -113,10 +113,12 @@ class PeerConnectionClient: NSObject, RTCPeerConnectionDelegate, RTCDataChannelD
 
     // Video
 
-    private var videoCaptureSession: AVCaptureSession?
+    private var localVideoCapturer: RTCCameraVideoCapturer?
+    private var videoCaptureSession: AVCaptureSession? {
+        return localVideoCapturer?.captureSession
+    }
     private var videoSender: RTCRtpSender?
     private var localVideoTrack: RTCVideoTrack?
-    private var localVideoSource: RTCAVFoundationVideoSource?
 
     // RTCVideoTrack is fragile and prone to throwing exceptions and/or
     // causing deadlock in its destructor.  Therefore we take great care
@@ -174,8 +176,11 @@ class PeerConnectionClient: NSObject, RTCPeerConnectionDelegate, RTCDataChannelD
         let configuration = RTCDataChannelConfiguration()
         // Insist upon an "ordered" TCP data channel for delivery reliability.
         configuration.isOrdered = true
-        let dataChannel = peerConnection.dataChannel(forLabel: Identifiers.dataChannelSignaling.rawValue,
-                                                     configuration: configuration)
+        guard let dataChannel = peerConnection.dataChannel(forLabel: Identifiers.dataChannelSignaling.rawValue,
+                                                           configuration: configuration) else {
+            owsFail("\(logTag) in \(#function) dataChannel was unexpectedly nil")
+            return
+        }
         dataChannel.delegate = self
 
         assert(self.dataChannel == nil)
@@ -195,16 +200,15 @@ class PeerConnectionClient: NSObject, RTCPeerConnectionDelegate, RTCDataChannelD
             return
         }
 
-        // TODO: We could cap the maximum video size.
-        let cameraConstraints = RTCMediaConstraints(mandatoryConstraints: nil,
-                                                    optionalConstraints: nil)
+        // + * DEPRECATED Use RTCCameraVideoCapturer instead.
+//        let videoSource = factory.avFoundationVideoSource(with: cameraConstraints)
+        let videoSource: RTCVideoSource = factory.videoSource()
+        self.localVideoCapturer = RTCCameraVideoCapturer(delegate: videoSource)
 
-        // TODO: Revisit the cameraConstraints.
-        let videoSource = factory.avFoundationVideoSource(with: cameraConstraints)
-        self.localVideoSource = videoSource
-
-        self.videoCaptureSession = videoSource.captureSession
-        videoSource.useBackCamera = false
+//        self.localVideoSource = videoSource
+//
+//        self.videoCaptureSession = videoSource.captureSession
+//        videoSource.useBackCamera = false
 
         let localVideoTrack = factory.videoTrack(with: videoSource, trackId: Identifiers.videoTrack.rawValue)
         self.localVideoTrack = localVideoTrack
@@ -220,22 +224,39 @@ class PeerConnectionClient: NSObject, RTCPeerConnectionDelegate, RTCDataChannelD
         self.videoSender = videoSender
     }
 
+    public func cameraCaptureDevice(position: AVCaptureDevicePosition) -> AVCaptureDevice? {
+        let availableDevices: [AVCaptureDevice] = RTCCameraVideoCapturer.captureDevices()
+
+        if let device = availableDevices.first(where: { $0.position == position }) {
+            return device
+        } else {
+            return availableDevices.first
+        }
+    }
+
     public func setCameraSource(useBackCamera: Bool) {
         SwiftAssertIsOnMainThread(#function)
 
-        PeerConnectionClient.signalingQueue.async {
-            guard let localVideoSource = self.localVideoSource else {
-                owsFail("\(self.logTag) in \(#function) localVideoSource was unexpectedly nil")
+        PeerConnectionClient.signalingQueue.async { [weak self] in
+            guard let strongSelf = self else {
                 return
             }
 
-            // certain devices, e.g. 16GB iPod touch don't have a back camera
-            guard localVideoSource.canUseBackCamera else {
-                owsFail("\(self.logTag) in \(#function) canUseBackCamera was unexpectedly false")
+            let position: AVCaptureDevicePosition = useBackCamera ? .back : .front
+
+            guard let device = strongSelf.cameraCaptureDevice(position: position) else {
+                owsFail("\(strongSelf.logTag) in \(#function) device was unexpectedly nil")
                 return
             }
 
-            localVideoSource.useBackCamera = useBackCamera
+            guard let localVideoCapturer = strongSelf.localVideoCapturer else {
+                owsFail("\(strongSelf.logTag) in \(#function) videoCaptureSessions was unexpectedly nil")
+                return
+            }
+
+            let format: AVCaptureDeviceFormat// todo
+            let fps: Int // DO
+            localVideoCapturer.startCapture(with: device, format: format, fps: fps)
         }
     }
 
@@ -267,11 +288,11 @@ class PeerConnectionClient: NSObject, RTCPeerConnectionDelegate, RTCDataChannelD
                 videoCaptureSession.stopRunning()
             }
 
-            DispatchQueue.main.async { [weak self, weak localVideoTrack] in
+            DispatchQueue.main.async { [weak self, weak videoCaptureSession] in
                 guard let strongSelf = self else { return }
-                guard let strongLocalVideoTrack = localVideoTrack else { return }
+                guard let strongVideoCaptureSession = videoCaptureSession else { return }
                 guard let strongDelegate = strongSelf.delegate else { return }
-                strongDelegate.peerConnectionClient(strongSelf, didUpdateLocal: enabled ? strongLocalVideoTrack : nil)
+                strongDelegate.peerConnectionClient(strongSelf, didUpdateLocalVideoCaptureSession: enabled ? strongVideoCaptureSession : nil)
             }
         }
     }
@@ -529,7 +550,6 @@ class PeerConnectionClient: NSObject, RTCPeerConnectionDelegate, RTCDataChannelD
         audioSender = nil
         audioTrack = nil
         videoSender = nil
-        localVideoSource = nil
         localVideoTrack = nil
         remoteVideoTrack = nil
 

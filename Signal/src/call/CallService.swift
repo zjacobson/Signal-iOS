@@ -94,7 +94,7 @@ protocol CallServiceObserver: class {
      * Fired whenever the local or remote video track become active or inactive.
      */
     func didUpdateVideoTracks(call: SignalCall?,
-                              localVideoTrack: RTCVideoTrack?,
+                              localCaptureSession: AVCaptureSession?,
                               remoteVideoTrack: RTCVideoTrack?)
 }
 
@@ -1322,7 +1322,7 @@ protocol CallServiceObserver: class {
             return
         }
 
-        self.localVideoTrack = videoTrack
+        self.localVideoCaptureSession = videoCaptureSession
     }
 
     internal func peerConnectionClient(_ peerConnectionClient: PeerConnectionClient, didUpdateRemote videoTrack: RTCVideoTrack?) {
@@ -1629,10 +1629,10 @@ protocol CallServiceObserver: class {
 
         // Synchronize observer with current call state
         let call = self.call
-        let localVideoTrack = self.localVideoTrack
+        let localCaptureSession = self.localCaptureSession
         let remoteVideoTrack = self.isRemoteVideoEnabled ? self.remoteVideoTrack : nil
         observer.didUpdateVideoTracks(call: call,
-                                      localVideoTrack: localVideoTrack,
+                                      localCaptureSession: localCaptureSession,
                                       remoteVideoTrack: remoteVideoTrack)
     }
 
