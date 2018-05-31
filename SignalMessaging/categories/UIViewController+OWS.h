@@ -6,7 +6,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-typedef void (^OnDismissBlock)(void);
+typedef void (^DidDisappearBlock)(void);
 
 @interface UIViewController (OWS)
 
@@ -25,7 +25,7 @@ typedef void (^OnDismissBlock)(void);
 
 #pragma mark - On Dismiss
 
-- (void)setOnDismissBlock:(nullable OnDismissBlock)onDismissBlock;
+- (void)setDidDisappearBlock:(nullable DidDisappearBlock)didDisappearBlock;
 
 @end
 

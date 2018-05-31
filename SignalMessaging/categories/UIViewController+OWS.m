@@ -8,7 +8,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-static void *kUIViewController_OnDismissBlock = &kUIViewController_OnDismissBlock;
+static void *kUIViewController_DidDisappearBlock = &kUIViewController_DidDisappearBlock;
 
 @implementation UIViewController (OWS)
 
@@ -128,30 +128,30 @@ static void *kUIViewController_OnDismissBlock = &kUIViewController_OnDismissBloc
     
     [self ows_viewDidDisappear:animated];
 
-    OnDismissBlock _Nullable onDismissBlock = self.onDismissBlock;
-    if (onDismissBlock) {
-        [self setOnDismissBlock:nil];
+    DidDisappearBlock _Nullable didDisappearBlock = self.didDisappearBlock;
+    if (didDisappearBlock) {
+        [self setDidDisappearBlock:nil];
 
-        onDismissBlock();
+        didDisappearBlock();
     }
 }
 
-- (nullable OnDismissBlock)onDismissBlock
+- (nullable DidDisappearBlock)didDisappearBlock
 {
     OWSAssertIsOnMainThread();
-    
-    OnDismissBlock _Nullable onDismissBlock = objc_getAssociatedObject(self, kUIViewController_OnDismissBlock);
-    
-    return onDismissBlock;
+
+    DidDisappearBlock _Nullable didDisappearBlock = objc_getAssociatedObject(self, kUIViewController_DidDisappearBlock);
+
+    return didDisappearBlock;
 }
 
-- (void)setOnDismissBlock:(nullable OnDismissBlock)onDismissBlock
+- (void)setDidDisappearBlock:(nullable DidDisappearBlock)didDisappearBlock
 {
     OWSAssertIsOnMainThread();
-    
-    objc_setAssociatedObject(self, kUIViewController_OnDismissBlock, onDismissBlock, OBJC_ASSOCIATION_COPY);
-    
-    if (onDismissBlock) {
+
+    objc_setAssociatedObject(self, kUIViewController_DidDisappearBlock, didDisappearBlock, OBJC_ASSOCIATION_COPY);
+
+    if (didDisappearBlock) {
         [self swizzleViewDidDisappearIfNecessary];
     }
 }

@@ -346,6 +346,10 @@ typedef enum : NSUInteger {
                                              selector:@selector(keyboardWillChangeFrame:)
                                                  name:UIKeyboardWillChangeFrameNotification
                                                object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(didHideEditMenu:)
+                                                 name:UIMenuControllerDidHideMenuNotification
+                                               object:nil];
 }
 
 - (void)signalAccountsDidChange:(NSNotification *)notification
@@ -643,7 +647,6 @@ typedef enum : NSUInteger {
     
     [super viewWillAppear:animated];
     
-
     [self ensureBannerState];
 
     // In case we're dismissing a CNContactViewController, or DocumentPicker which requires default system appearance
@@ -1075,10 +1078,6 @@ typedef enum : NSUInteger {
     self.viewHasEverAppeared = YES;
 
     [self tryToBecomeFirstResponderOnAppear];
-    
-    DDLogVerbose(@"%@ viewDidAppear complete %d", self.logTag, self.isFirstResponder);
-    [DDLog flushLog];
-    [DDLog flushLog];
 }
 
 - (void)dismissViewControllerAnimated:(BOOL)animated completion: (void (^ __nullable)(void))completion
@@ -1096,8 +1095,6 @@ typedef enum : NSUInteger {
 - (void)tryToBecomeFirstResponderOnAppear
 {
     OWSAssertIsOnMainThread();
-    
-    DDLogDebug(@"%@ tryToBecomeFirstResponderOnAppear", self.logTag);
     
     // HACK: Because the inputToolbar is the inputAccessoryView, we make some special considertations WRT it's firstResponder status.
     //
@@ -5138,18 +5135,46 @@ interactionControllerForAnimationController:(id<UIViewControllerAnimatedTransiti
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
-#pragma mark - Alert Controllers
+#pragma mark - Presented Views
 
 - (void)presentViewController:(UIViewController *)viewController animated:(BOOL)animated completion:(void (^ __nullable)(void))completion
 {
     OWSAssertIsOnMainThread();
 
-    __weak ConversationViewController *weakSelf = self;
-    viewController.onDismissBlock = ^{
-        [weakSelf tryToBecomeFirstResponderOnAppear];
-    };
+    //    __weak ConversationViewController *weakSelf = self;
+    //    viewController.didDisappearBlock = ^{
+    //        [weakSelf presentedViewControllerDidDisappear];
+    //    };
 
     [super presentViewController:viewController animated:animated completion:completion];
+}
+
+- (void)presentedViewControllerDidDisappear
+{
+    OWSAssertIsOnMainThread();
+
+    if (self.presentedViewController != nil) {
+        return;
+    }
+    if (self.navigationController.topViewController != self) {
+        return;
+    }
+
+    // In case we're dismissing a CNContactViewController, or DocumentPicker which requires default system appearance
+    [UIUtil applySignalAppearence];
+
+    [self tryToBecomeFirstResponderOnAppear];
+    [self markVisibleMessagesAsRead];
+    [self tryToBecomeFirstResponderOnAppear];
+    [self updateLastVisibleTimestamp];
+}
+
+- (void)didHideEditMenu:(NSNotification *)notification
+{
+    OWSAssertIsOnMainThread();
+
+    [self presentedViewControllerDidDisappear];
+    //    [self becomeFirstResponder];
 }
 
 @end
