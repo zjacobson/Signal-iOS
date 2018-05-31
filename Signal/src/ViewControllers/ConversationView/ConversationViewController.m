@@ -640,10 +640,11 @@ typedef enum : NSUInteger {
 - (void)viewWillAppear:(BOOL)animated
 {
     DDLogDebug(@"%@ viewWillAppear", self.logTag);
+    
+    [super viewWillAppear:animated];
+    
 
     [self ensureBannerState];
-
-    [super viewWillAppear:animated];
 
     // In case we're dismissing a CNContactViewController, or DocumentPicker which requires default system appearance
     [UIUtil applySignalAppearence];
@@ -1073,6 +1074,31 @@ typedef enum : NSUInteger {
     self.isViewCompletelyAppeared = YES;
     self.viewHasEverAppeared = YES;
 
+    [self tryToBecomeFirstResponderOnAppear];
+    
+    DDLogVerbose(@"%@ viewDidAppear complete %d", self.logTag, self.isFirstResponder);
+    [DDLog flushLog];
+    [DDLog flushLog];
+}
+
+- (void)dismissViewControllerAnimated:(BOOL)animated completion: (void (^ __nullable)(void))completion
+{
+    [super dismissViewControllerAnimated:animated
+                              completion:^{
+                                  if (completion) {
+                                      completion();
+                                  }
+                                  
+                                  [self tryToBecomeFirstResponderOnAppear];
+                              }];
+}
+
+- (void)tryToBecomeFirstResponderOnAppear
+{
+    OWSAssertIsOnMainThread();
+    
+    DDLogDebug(@"%@ tryToBecomeFirstResponderOnAppear", self.logTag);
+    
     // HACK: Because the inputToolbar is the inputAccessoryView, we make some special considertations WRT it's firstResponder status.
     //
     // When a view controller is presented, it is first responder. However if we resign first responder
@@ -1110,6 +1136,7 @@ typedef enum : NSUInteger {
 - (void)viewDidDisappear:(BOOL)animated
 {
     [super viewDidDisappear:animated];
+
     self.userHasScrolled = NO;
     self.isViewVisible = NO;
 
@@ -5109,6 +5136,20 @@ interactionControllerForAnimationController:(id<UIViewControllerAnimatedTransiti
 {
     DDLogInfo(@"%@ in %s", self.logTag, __PRETTY_FUNCTION__);
     [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+#pragma mark - Alert Controllers
+
+- (void)presentViewController:(UIViewController *)viewController animated:(BOOL)animated completion:(void (^ __nullable)(void))completion
+{
+    OWSAssertIsOnMainThread();
+
+    __weak ConversationViewController *weakSelf = self;
+    viewController.onDismissBlock = ^{
+        [weakSelf tryToBecomeFirstResponderOnAppear];
+    };
+
+    [super presentViewController:viewController animated:animated completion:completion];
 }
 
 @end

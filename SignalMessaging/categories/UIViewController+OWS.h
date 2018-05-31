@@ -6,6 +6,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+typedef void (^OnDismissBlock)(void);
+
 @interface UIViewController (OWS)
 
 - (UIViewController *)findFrontmostViewController:(BOOL)ignoringAlerts;
@@ -20,6 +22,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (UIBarButtonItem *)createOWSBackButton;
 
 + (UIBarButtonItem *)createOWSBackButtonWithTarget:(id)target selector:(SEL)selector;
+
+#pragma mark - On Dismiss
+
+- (void)setOnDismissBlock:(nullable OnDismissBlock)onDismissBlock;
 
 @end
 

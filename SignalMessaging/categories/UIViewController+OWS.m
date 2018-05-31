@@ -4,8 +4,11 @@
 
 #import "UIView+OWS.h"
 #import "UIViewController+OWS.h"
+#import <objc/runtime.h>
 
 NS_ASSUME_NONNULL_BEGIN
+
+static void *kUIViewController_OnDismissBlock = &kUIViewController_OnDismissBlock;
 
 @implementation UIViewController (OWS)
 
@@ -112,6 +115,88 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)backButtonPressed:(id)sender
 {
     [self.navigationController popViewControllerAnimated:YES];
+}
+
+#pragma mark - On Dismiss
+
+- (void)ows_viewDidDisappear:(BOOL)animated
+{
+    OWSAssertIsOnMainThread();
+    
+    DDLogVerbose(@"%@ %s", self.logTag, __PRETTY_FUNCTION__);
+    [DDLog flushLog];
+    
+    [self ows_viewDidDisappear:animated];
+
+    OnDismissBlock _Nullable onDismissBlock = self.onDismissBlock;
+    if (onDismissBlock) {
+        [self setOnDismissBlock:nil];
+
+        onDismissBlock();
+    }
+}
+
+- (nullable OnDismissBlock)onDismissBlock
+{
+    OWSAssertIsOnMainThread();
+    
+    OnDismissBlock _Nullable onDismissBlock = objc_getAssociatedObject(self, kUIViewController_OnDismissBlock);
+    
+    return onDismissBlock;
+}
+
+- (void)setOnDismissBlock:(nullable OnDismissBlock)onDismissBlock
+{
+    OWSAssertIsOnMainThread();
+    
+    objc_setAssociatedObject(self, kUIViewController_OnDismissBlock, onDismissBlock, OBJC_ASSOCIATION_COPY);
+    
+    if (onDismissBlock) {
+        [self swizzleViewDidDisappearIfNecessary];
+    }
+}
+
+- (void)swizzleViewDidDisappearIfNecessary {
+    static NSMutableSet<Class> *swizzledClasses = nil;
+    
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        swizzledClasses = [NSMutableSet new];
+    });
+
+    Class class = [self class];
+
+    DDLogVerbose(@"Swizzling methods? for: %@", class);
+
+    if ([swizzledClasses containsObject:class]) {
+        return;
+    }
+    [swizzledClasses addObject:class];
+
+    DDLogVerbose(@"Swizzling methods for: %@", class);
+    [DDLog flushLog];
+    [DDLog flushLog];
+
+    SEL originalSelector = @selector(viewDidDisappear:);
+    SEL swizzledSelector = @selector(ows_viewDidDisappear:);
+    
+    Method originalMethod = class_getInstanceMethod(class, originalSelector);
+    Method swizzledMethod = class_getInstanceMethod(class, swizzledSelector);
+    
+    BOOL didAddMethod =
+    class_addMethod(class,
+                    originalSelector,
+                    method_getImplementation(swizzledMethod),
+                    method_getTypeEncoding(swizzledMethod));
+    
+    if (didAddMethod) {
+        class_replaceMethod(class,
+                            swizzledSelector,
+                            method_getImplementation(originalMethod),
+                            method_getTypeEncoding(originalMethod));
+    } else {
+        method_exchangeImplementations(originalMethod, swizzledMethod);
+    }
 }
 
 @end
