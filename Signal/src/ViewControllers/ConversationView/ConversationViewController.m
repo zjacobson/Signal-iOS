@@ -5140,13 +5140,22 @@ interactionControllerForAnimationController:(id<UIViewControllerAnimatedTransiti
 - (void)presentViewController:(UIViewController *)viewController animated:(BOOL)animated completion:(void (^ __nullable)(void))completion
 {
     OWSAssertIsOnMainThread();
+//    OWSAssert(!self.presentedViewController);
 
-    //    __weak ConversationViewController *weakSelf = self;
+    if ([UIMenuController sharedMenuController].isMenuVisible) {
+        [[UIMenuController sharedMenuController] setMenuVisible:NO animated:NO];
+//        [self tryToBecomeFirstResponderOnAppear];
+    }
+
+        __weak ConversationViewController *weakSelf = self;
     //    viewController.didDisappearBlock = ^{
     //        [weakSelf presentedViewControllerDidDisappear];
     //    };
 
-    [super presentViewController:viewController animated:animated completion:completion];
+//    [self dismissViewControllerAnimated:YES completion:^{
+//        [weakSelf tryToBecomeFirstResponderOnAppear];
+        [super presentViewController:viewController animated:animated completion:completion];
+//    }];
 }
 
 - (void)presentedViewControllerDidDisappear
@@ -5165,7 +5174,6 @@ interactionControllerForAnimationController:(id<UIViewControllerAnimatedTransiti
 
     [self tryToBecomeFirstResponderOnAppear];
     [self markVisibleMessagesAsRead];
-    [self tryToBecomeFirstResponderOnAppear];
     [self updateLastVisibleTimestamp];
 }
 
@@ -5173,7 +5181,7 @@ interactionControllerForAnimationController:(id<UIViewControllerAnimatedTransiti
 {
     OWSAssertIsOnMainThread();
 
-    [self presentedViewControllerDidDisappear];
+//    [self presentedViewControllerDidDisappear];
     //    [self becomeFirstResponder];
 }
 
