@@ -24,7 +24,7 @@
 #import "TextSecureKitEnv.h"
 #import "Threading.h"
 #import "WebSocketResources.pb.h"
-//#import "SignalServiceKit-Swift.h"
+#import "SignalServiceKit-Swift.h"
 
 //@import SignalServiceKit;
 
