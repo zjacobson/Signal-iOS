@@ -19,7 +19,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   typealias Version = _2
 }
 
-@objc class Signalservice_Envelope : NSObject {
+@objc(OWSProtosSignalservice_Envelope) class Signalservice_Envelope : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -137,7 +137,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   fileprivate var _content: Data? = nil
 }
 
-@objc class Signalservice_Content : NSObject {
+@objc(OWSProtosSignalservice_Content) class Signalservice_Content : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -194,7 +194,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
-@objc class Signalservice_CallMessage : NSObject {
+@objc(OWSProtosSignalservice_CallMessage) class Signalservice_CallMessage : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -253,7 +253,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  @objc class Offer : NSObject {
+  @objc(OWSProtosOffer) class Offer : NSObject {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -286,7 +286,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
     fileprivate var _sessionDescription: String? = nil
   }
 
-  @objc class Answer : NSObject {
+  @objc(OWSProtosAnswer) class Answer : NSObject {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -319,7 +319,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
     fileprivate var _sessionDescription: String? = nil
   }
 
-  @objc class IceUpdate : NSObject {
+  @objc(OWSProtosIceUpdate) class IceUpdate : NSObject {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -370,7 +370,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
     fileprivate var _sdp: String? = nil
   }
 
-  @objc class Busy : NSObject {
+  @objc(OWSProtosBusy) class Busy : NSObject {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -391,7 +391,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
     fileprivate var _id: UInt64? = nil
   }
 
-  @objc class Hangup : NSObject {
+  @objc(OWSProtosHangup) class Hangup : NSObject {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -417,7 +417,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
-@objc class Signalservice_DataMessage : NSObject {
+@objc(OWSProtosSignalservice_DataMessage) class Signalservice_DataMessage : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -526,7 +526,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
 
   }
 
-  @objc class Quote : NSObject {
+  @objc(OWSProtosQuote) class Quote : NSObject {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -562,7 +562,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
 
     var unknownFields = SwiftProtobuf.UnknownStorage()
 
-    @objc class QuotedAttachment : NSObject {
+    @objc(OWSProtosQuotedAttachment) class QuotedAttachment : NSObject {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -640,7 +640,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
     fileprivate var _text: String? = nil
   }
 
-  @objc class Contact : NSObject {
+  @objc(OWSProtosContact) class Contact : NSObject {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -689,7 +689,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
 
     var unknownFields = SwiftProtobuf.UnknownStorage()
 
-    @objc class Name : NSObject {
+    @objc(OWSProtosName) class Name : NSObject {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -760,7 +760,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
       fileprivate var _displayName: String? = nil
     }
 
-    @objc class Phone : NSObject {
+    @objc(OWSProtosPhone) class Phone : NSObject {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -833,7 +833,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
       fileprivate var _label: String? = nil
     }
 
-    @objc class Email : NSObject {
+    @objc(OWSProtosEmail) class Email : NSObject {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -906,7 +906,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
       fileprivate var _label: String? = nil
     }
 
-    @objc class PostalAddress : NSObject {
+    @objc(OWSProtosPostalAddress) class PostalAddress : NSObject {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1036,7 +1036,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
       fileprivate var _country: String? = nil
     }
 
-    @objc class Avatar : NSObject {
+    @objc(OWSProtosAvatar) class Avatar : NSObject {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1076,7 +1076,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
-@objc class Signalservice_NullMessage : NSObject {
+@objc(OWSProtosSignalservice_NullMessage) class Signalservice_NullMessage : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -1097,7 +1097,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   fileprivate var _padding: Data? = nil
 }
 
-@objc class Signalservice_ReceiptMessage : NSObject {
+@objc(OWSProtosSignalservice_ReceiptMessage) class Signalservice_ReceiptMessage : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -1146,7 +1146,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   fileprivate var _type: Signalservice_ReceiptMessage.TypeEnum? = nil
 }
 
-@objc class Signalservice_Verified : NSObject {
+@objc(OWSProtosSignalservice_Verified) class Signalservice_Verified : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -1226,7 +1226,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   fileprivate var _nullMessage: Data? = nil
 }
 
-@objc class Signalservice_SyncMessage : NSObject {
+@objc(OWSProtosSignalservice_SyncMessage) class Signalservice_SyncMessage : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -1310,7 +1310,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  @objc class Sent : NSObject {
+  @objc(OWSProtosSent) class Sent : NSObject {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -1358,7 +1358,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
     fileprivate var _storage = _StorageClass.defaultInstance
   }
 
-  @objc class Contacts : NSObject {
+  @objc(OWSProtosContacts) class Contacts : NSObject {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -1389,7 +1389,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
     fileprivate var _storage = _StorageClass.defaultInstance
   }
 
-  @objc class Groups : NSObject {
+  @objc(OWSProtosGroups) class Groups : NSObject {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -1410,7 +1410,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
     fileprivate var _storage = _StorageClass.defaultInstance
   }
 
-  @objc class Blocked : NSObject {
+  @objc(OWSProtosBlocked) class Blocked : NSObject {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -1422,7 +1422,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
     public override required init() {}
   }
 
-  @objc class Request : NSObject {
+  @objc(OWSProtosRequest) class Request : NSObject {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -1478,7 +1478,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
     fileprivate var _type: Signalservice_SyncMessage.Request.TypeEnum? = nil
   }
 
-  @objc class Read : NSObject {
+  @objc(OWSProtosRead) class Read : NSObject {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -1509,7 +1509,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
     fileprivate var _timestamp: UInt64? = nil
   }
 
-  @objc class Configuration : NSObject {
+  @objc(OWSProtosConfiguration) class Configuration : NSObject {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -1535,7 +1535,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
-@objc class Signalservice_AttachmentPointer : NSObject {
+@objc(OWSProtosSignalservice_AttachmentPointer) class Signalservice_AttachmentPointer : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -1669,7 +1669,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   fileprivate var _height: UInt32? = nil
 }
 
-@objc class Signalservice_GroupContext : NSObject {
+@objc(OWSProtosSignalservice_GroupContext) class Signalservice_GroupContext : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -1757,7 +1757,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
-@objc class Signalservice_ContactDetails : NSObject {
+@objc(OWSProtosSignalservice_ContactDetails) class Signalservice_ContactDetails : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -1836,7 +1836,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  @objc class Avatar : NSObject {
+  @objc(OWSProtosAvatar) class Avatar : NSObject {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -1872,7 +1872,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
-@objc class Signalservice_GroupDetails : NSObject {
+@objc(OWSProtosSignalservice_GroupDetails) class Signalservice_GroupDetails : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -1929,7 +1929,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  @objc class Avatar : NSObject {
+  @objc(OWSProtosAvatar) class Avatar : NSObject {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.

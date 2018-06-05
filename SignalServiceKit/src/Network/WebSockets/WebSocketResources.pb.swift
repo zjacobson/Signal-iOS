@@ -19,7 +19,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   typealias Version = _2
 }
 
-@objc class Signalservice_WebSocketRequestMessage : NSObject {
+@objc(OWSProtosSignalservice_WebSocketRequestMessage) class Signalservice_WebSocketRequestMessage : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -72,7 +72,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   fileprivate var _requestID: UInt64? = nil
 }
 
-@objc class Signalservice_WebSocketResponseMessage : NSObject {
+@objc(OWSProtosSignalservice_WebSocketResponseMessage) class Signalservice_WebSocketResponseMessage : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -125,7 +125,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   fileprivate var _body: Data? = nil
 }
 
-@objc class Signalservice_WebSocketMessage : NSObject {
+@objc(OWSProtosSignalservice_WebSocketMessage) class Signalservice_WebSocketMessage : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.

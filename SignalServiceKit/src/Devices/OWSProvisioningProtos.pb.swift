@@ -19,7 +19,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   typealias Version = _2
 }
 
-@objc class Signalservice_ProvisionEnvelope : NSObject {
+@objc(OWSProtosSignalservice_ProvisionEnvelope) class Signalservice_ProvisionEnvelope : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -51,7 +51,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   fileprivate var _body: Data? = nil
 }
 
-@objc class Signalservice_ProvisionMessage : NSObject {
+@objc(OWSProtosSignalservice_ProvisionMessage) class Signalservice_ProvisionMessage : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.

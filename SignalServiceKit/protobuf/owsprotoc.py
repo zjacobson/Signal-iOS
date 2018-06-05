@@ -43,7 +43,7 @@ def compile_swft(input_file_path, out_dir_path, swift_cmd):
             print '\t', 'post-processing:', swift_file_path
             patterns = (
                 # ('struct (.+)', '@obj class \1'),
-                (r'\n(\s*)struct ([\w_]+) \{', r'\n\1@objc class \2 : NSObject {'),
+                (r'\n(\s*)struct ([\w_]+) \{', r'\n\1@objc(OWSProtos\2) class \2 : NSObject {'),
                 ('struct ', 'class '),
                 # ('^class ', 'public class '),
                 ('mutating ', ''),

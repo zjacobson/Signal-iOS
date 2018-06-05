@@ -19,7 +19,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   typealias Version = _2
 }
 
-@objc class Textsecure_LogicalFingerprint : NSObject {
+@objc(OWSProtosTextsecure_LogicalFingerprint) class Textsecure_LogicalFingerprint : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -41,7 +41,7 @@ fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPI
   fileprivate var _identityData: Data? = nil
 }
 
-@objc class Textsecure_LogicalFingerprints : NSObject {
+@objc(OWSProtosTextsecure_LogicalFingerprints) class Textsecure_LogicalFingerprints : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
