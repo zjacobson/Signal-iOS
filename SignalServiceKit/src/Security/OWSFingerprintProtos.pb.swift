@@ -14,12 +14,12 @@ import SwiftProtobuf
 // incompatible with the version of SwiftProtobuf to which you are linking.
 // Please ensure that your are building against the same version of the API
 // that was used to generate this file.
-fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
-  struct _2: SwiftProtobuf.ProtobufAPIVersion_2 {}
+fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
+  class _2: SwiftProtobuf.ProtobufAPIVersion_2 {}
   typealias Version = _2
 }
 
-struct Textsecure_LogicalFingerprint {
+@objc class Textsecure_LogicalFingerprint : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -32,16 +32,16 @@ struct Textsecure_LogicalFingerprint {
   /// Returns true if `identityData` has been explicitly set.
   var hasIdentityData: Bool {return self._identityData != nil}
   /// Clears the value of `identityData`. Subsequent reads from it will return its default value.
-  mutating func clearIdentityData() {self._identityData = nil}
+  func clearIdentityData() {self._identityData = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  init() {}
+  public override required init() {}
 
   fileprivate var _identityData: Data? = nil
 }
 
-struct Textsecure_LogicalFingerprints {
+@objc class Textsecure_LogicalFingerprints : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -53,7 +53,7 @@ struct Textsecure_LogicalFingerprints {
   /// Returns true if `version` has been explicitly set.
   var hasVersion: Bool {return _storage._version != nil}
   /// Clears the value of `version`. Subsequent reads from it will return its default value.
-  mutating func clearVersion() {_storage._version = nil}
+  func clearVersion() {_storage._version = nil}
 
   var localFingerprint: Textsecure_LogicalFingerprint {
     get {return _storage._localFingerprint ?? Textsecure_LogicalFingerprint()}
@@ -62,7 +62,7 @@ struct Textsecure_LogicalFingerprints {
   /// Returns true if `localFingerprint` has been explicitly set.
   var hasLocalFingerprint: Bool {return _storage._localFingerprint != nil}
   /// Clears the value of `localFingerprint`. Subsequent reads from it will return its default value.
-  mutating func clearLocalFingerprint() {_storage._localFingerprint = nil}
+  func clearLocalFingerprint() {_storage._localFingerprint = nil}
 
   var remoteFingerprint: Textsecure_LogicalFingerprint {
     get {return _storage._remoteFingerprint ?? Textsecure_LogicalFingerprint()}
@@ -71,11 +71,11 @@ struct Textsecure_LogicalFingerprints {
   /// Returns true if `remoteFingerprint` has been explicitly set.
   var hasRemoteFingerprint: Bool {return _storage._remoteFingerprint != nil}
   /// Clears the value of `remoteFingerprint`. Subsequent reads from it will return its default value.
-  mutating func clearRemoteFingerprint() {_storage._remoteFingerprint = nil}
+  func clearRemoteFingerprint() {_storage._remoteFingerprint = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  init() {}
+  public override required init() {}
 
   fileprivate var _storage = _StorageClass.defaultInstance
 }
@@ -90,7 +90,7 @@ extension Textsecure_LogicalFingerprint: SwiftProtobuf.Message, SwiftProtobuf._M
     1: .same(proto: "identityData"),
   ]
 
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeSingularBytesField(value: &self._identityData)
@@ -137,14 +137,14 @@ extension Textsecure_LogicalFingerprints: SwiftProtobuf.Message, SwiftProtobuf._
     }
   }
 
-  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+  fileprivate func _uniqueStorage() -> _StorageClass {
     if !isKnownUniquelyReferenced(&_storage) {
       _storage = _StorageClass(copying: _storage)
     }
     return _storage
   }
 
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     _ = _uniqueStorage()
     try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
       while let fieldNumber = try decoder.nextFieldNumber() {

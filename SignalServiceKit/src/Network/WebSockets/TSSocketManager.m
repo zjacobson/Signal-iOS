@@ -24,6 +24,9 @@
 #import "TextSecureKitEnv.h"
 #import "Threading.h"
 #import "WebSocketResources.pb.h"
+//#import "SignalServiceKit-Swift.h"
+
+//@import SignalServiceKit;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -723,6 +726,7 @@ NSString *const kNSNotification_SocketManagerStateDidChange = @"kNSNotification_
                     return;
                 }
 
+                [Signalservice_Envelope new];
                 OWSSignalServiceProtosEnvelope *envelope =
                     [OWSSignalServiceProtosEnvelope parseFromData:decryptedPayload];
 

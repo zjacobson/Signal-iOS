@@ -231,7 +231,7 @@ SPEC CHECKSUMS:
   PureLayout: 4d550abe49a94f24c2808b9b95db9131685fe4cd
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
   SAMKeychain: 483e1c9f32984d50ca961e26818a534283b4cd5c
-  SignalServiceKit: 92dafb208668ff28b0b05ae395b49ee885686946
+  SignalServiceKit: 8e77fc3104b6ca5770affb3ff35eb64d339405cd
   SocketRocket: dbb1554b8fc288ef8ef370d6285aeca7361be31e
   SQLCipher: f9fcf29b2e59ced7defc2a2bdd0ebe79b40d4990
   SSZipArchive: d4009d2ce5520a421f231fd97028cc0e2667eed8

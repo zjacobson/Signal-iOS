@@ -9,10 +9,10 @@
 Pod::Spec.new do |s|
   s.name             = "SignalServiceKit"
   s.version          = "0.9.0"
-  s.summary          = "An Objective-C library for communicating with the Signal messaging service."
+  s.summary          = "An Objective-C & Swift library for communicating with the Signal messaging service."
 
   s.description      = <<-DESC
-An Objective-C library for communicating with the Signal messaging service.
+An Objective-C & Swift library for communicating with the Signal messaging service.
   DESC
 
   s.homepage         = "https://github.com/signalapp/SignalServiceKit"
@@ -37,6 +37,10 @@ An Objective-C library for communicating with the Signal messaging service.
   s.xcconfig = { 'OTHER_CFLAGS' => '$(inherited) -DSQLITE_HAS_CODEC' }
 
   s.resources = ["SignalServiceKit/Resources/Certificates/*"]
+  # s.pod_target_xcconfig = { 'SWIFT_OBJC_BRIDGING_HEADER' => '$(PODS_ROOT)/../../SignalServiceKit/SignalServiceKit.h' }
+  # s.pod_target_xcconfig = { 'SWIFT_OBJC_BRIDGING_HEADER' => 'SignalServiceKit/SignalServiceKit.h' }
+  # s.preserve_paths = "${POD_ROOT}/SignalServiceKit/Bridging-Header.h"
+  # s.pod_target_xcconfig = { 'SWIFT_OBJC_BRIDGING_HEADER' => '${POD_ROOT}/SignalServiceKit/Bridging-Header.h' }
 
   s.dependency 'Curve25519Kit'
   s.dependency 'CocoaLumberjack'

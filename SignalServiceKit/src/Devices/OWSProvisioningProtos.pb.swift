@@ -14,12 +14,12 @@ import SwiftProtobuf
 // incompatible with the version of SwiftProtobuf to which you are linking.
 // Please ensure that your are building against the same version of the API
 // that was used to generate this file.
-fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
-  struct _2: SwiftProtobuf.ProtobufAPIVersion_2 {}
+fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
+  class _2: SwiftProtobuf.ProtobufAPIVersion_2 {}
   typealias Version = _2
 }
 
-struct Signalservice_ProvisionEnvelope {
+@objc class Signalservice_ProvisionEnvelope : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -31,7 +31,7 @@ struct Signalservice_ProvisionEnvelope {
   /// Returns true if `publicKey` has been explicitly set.
   var hasPublicKey: Bool {return self._publicKey != nil}
   /// Clears the value of `publicKey`. Subsequent reads from it will return its default value.
-  mutating func clearPublicKey() {self._publicKey = nil}
+  func clearPublicKey() {self._publicKey = nil}
 
   /// Encrypted ProvisionMessage
   var body: Data {
@@ -41,17 +41,17 @@ struct Signalservice_ProvisionEnvelope {
   /// Returns true if `body` has been explicitly set.
   var hasBody: Bool {return self._body != nil}
   /// Clears the value of `body`. Subsequent reads from it will return its default value.
-  mutating func clearBody() {self._body = nil}
+  func clearBody() {self._body = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  init() {}
+  public override required init() {}
 
   fileprivate var _publicKey: Data? = nil
   fileprivate var _body: Data? = nil
 }
 
-struct Signalservice_ProvisionMessage {
+@objc class Signalservice_ProvisionMessage : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -63,7 +63,7 @@ struct Signalservice_ProvisionMessage {
   /// Returns true if `identityKeyPublic` has been explicitly set.
   var hasIdentityKeyPublic: Bool {return self._identityKeyPublic != nil}
   /// Clears the value of `identityKeyPublic`. Subsequent reads from it will return its default value.
-  mutating func clearIdentityKeyPublic() {self._identityKeyPublic = nil}
+  func clearIdentityKeyPublic() {self._identityKeyPublic = nil}
 
   var identityKeyPrivate: Data {
     get {return _identityKeyPrivate ?? SwiftProtobuf.Internal.emptyData}
@@ -72,7 +72,7 @@ struct Signalservice_ProvisionMessage {
   /// Returns true if `identityKeyPrivate` has been explicitly set.
   var hasIdentityKeyPrivate: Bool {return self._identityKeyPrivate != nil}
   /// Clears the value of `identityKeyPrivate`. Subsequent reads from it will return its default value.
-  mutating func clearIdentityKeyPrivate() {self._identityKeyPrivate = nil}
+  func clearIdentityKeyPrivate() {self._identityKeyPrivate = nil}
 
   var number: String {
     get {return _number ?? String()}
@@ -81,7 +81,7 @@ struct Signalservice_ProvisionMessage {
   /// Returns true if `number` has been explicitly set.
   var hasNumber: Bool {return self._number != nil}
   /// Clears the value of `number`. Subsequent reads from it will return its default value.
-  mutating func clearNumber() {self._number = nil}
+  func clearNumber() {self._number = nil}
 
   var provisioningCode: String {
     get {return _provisioningCode ?? String()}
@@ -90,7 +90,7 @@ struct Signalservice_ProvisionMessage {
   /// Returns true if `provisioningCode` has been explicitly set.
   var hasProvisioningCode: Bool {return self._provisioningCode != nil}
   /// Clears the value of `provisioningCode`. Subsequent reads from it will return its default value.
-  mutating func clearProvisioningCode() {self._provisioningCode = nil}
+  func clearProvisioningCode() {self._provisioningCode = nil}
 
   var userAgent: String {
     get {return _userAgent ?? String()}
@@ -99,7 +99,7 @@ struct Signalservice_ProvisionMessage {
   /// Returns true if `userAgent` has been explicitly set.
   var hasUserAgent: Bool {return self._userAgent != nil}
   /// Clears the value of `userAgent`. Subsequent reads from it will return its default value.
-  mutating func clearUserAgent() {self._userAgent = nil}
+  func clearUserAgent() {self._userAgent = nil}
 
   var profileKey: Data {
     get {return _profileKey ?? SwiftProtobuf.Internal.emptyData}
@@ -108,7 +108,7 @@ struct Signalservice_ProvisionMessage {
   /// Returns true if `profileKey` has been explicitly set.
   var hasProfileKey: Bool {return self._profileKey != nil}
   /// Clears the value of `profileKey`. Subsequent reads from it will return its default value.
-  mutating func clearProfileKey() {self._profileKey = nil}
+  func clearProfileKey() {self._profileKey = nil}
 
   var readReceipts: Bool {
     get {return _readReceipts ?? false}
@@ -117,11 +117,11 @@ struct Signalservice_ProvisionMessage {
   /// Returns true if `readReceipts` has been explicitly set.
   var hasReadReceipts: Bool {return self._readReceipts != nil}
   /// Clears the value of `readReceipts`. Subsequent reads from it will return its default value.
-  mutating func clearReadReceipts() {self._readReceipts = nil}
+  func clearReadReceipts() {self._readReceipts = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  init() {}
+  public override required init() {}
 
   fileprivate var _identityKeyPublic: Data? = nil
   fileprivate var _identityKeyPrivate: Data? = nil
@@ -143,7 +143,7 @@ extension Signalservice_ProvisionEnvelope: SwiftProtobuf.Message, SwiftProtobuf.
     2: .same(proto: "body"),
   ]
 
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeSingularBytesField(value: &self._publicKey)
@@ -183,7 +183,7 @@ extension Signalservice_ProvisionMessage: SwiftProtobuf.Message, SwiftProtobuf._
     7: .same(proto: "readReceipts"),
   ]
 
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeSingularBytesField(value: &self._identityKeyPublic)

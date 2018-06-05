@@ -14,12 +14,12 @@ import SwiftProtobuf
 // incompatible with the version of SwiftProtobuf to which you are linking.
 // Please ensure that your are building against the same version of the API
 // that was used to generate this file.
-fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
-  struct _2: SwiftProtobuf.ProtobufAPIVersion_2 {}
+fileprivate class _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
+  class _2: SwiftProtobuf.ProtobufAPIVersion_2 {}
   typealias Version = _2
 }
 
-struct Signalservice_WebSocketRequestMessage {
+@objc class Signalservice_WebSocketRequestMessage : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -31,7 +31,7 @@ struct Signalservice_WebSocketRequestMessage {
   /// Returns true if `verb` has been explicitly set.
   var hasVerb: Bool {return self._verb != nil}
   /// Clears the value of `verb`. Subsequent reads from it will return its default value.
-  mutating func clearVerb() {self._verb = nil}
+  func clearVerb() {self._verb = nil}
 
   var path: String {
     get {return _path ?? String()}
@@ -40,7 +40,7 @@ struct Signalservice_WebSocketRequestMessage {
   /// Returns true if `path` has been explicitly set.
   var hasPath: Bool {return self._path != nil}
   /// Clears the value of `path`. Subsequent reads from it will return its default value.
-  mutating func clearPath() {self._path = nil}
+  func clearPath() {self._path = nil}
 
   var body: Data {
     get {return _body ?? SwiftProtobuf.Internal.emptyData}
@@ -49,7 +49,7 @@ struct Signalservice_WebSocketRequestMessage {
   /// Returns true if `body` has been explicitly set.
   var hasBody: Bool {return self._body != nil}
   /// Clears the value of `body`. Subsequent reads from it will return its default value.
-  mutating func clearBody() {self._body = nil}
+  func clearBody() {self._body = nil}
 
   var headers: [String] = []
 
@@ -60,11 +60,11 @@ struct Signalservice_WebSocketRequestMessage {
   /// Returns true if `requestID` has been explicitly set.
   var hasRequestID: Bool {return self._requestID != nil}
   /// Clears the value of `requestID`. Subsequent reads from it will return its default value.
-  mutating func clearRequestID() {self._requestID = nil}
+  func clearRequestID() {self._requestID = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  init() {}
+  public override required init() {}
 
   fileprivate var _verb: String? = nil
   fileprivate var _path: String? = nil
@@ -72,7 +72,7 @@ struct Signalservice_WebSocketRequestMessage {
   fileprivate var _requestID: UInt64? = nil
 }
 
-struct Signalservice_WebSocketResponseMessage {
+@objc class Signalservice_WebSocketResponseMessage : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -84,7 +84,7 @@ struct Signalservice_WebSocketResponseMessage {
   /// Returns true if `requestID` has been explicitly set.
   var hasRequestID: Bool {return self._requestID != nil}
   /// Clears the value of `requestID`. Subsequent reads from it will return its default value.
-  mutating func clearRequestID() {self._requestID = nil}
+  func clearRequestID() {self._requestID = nil}
 
   var status: UInt32 {
     get {return _status ?? 0}
@@ -93,7 +93,7 @@ struct Signalservice_WebSocketResponseMessage {
   /// Returns true if `status` has been explicitly set.
   var hasStatus: Bool {return self._status != nil}
   /// Clears the value of `status`. Subsequent reads from it will return its default value.
-  mutating func clearStatus() {self._status = nil}
+  func clearStatus() {self._status = nil}
 
   var message: String {
     get {return _message ?? String()}
@@ -102,7 +102,7 @@ struct Signalservice_WebSocketResponseMessage {
   /// Returns true if `message` has been explicitly set.
   var hasMessage: Bool {return self._message != nil}
   /// Clears the value of `message`. Subsequent reads from it will return its default value.
-  mutating func clearMessage() {self._message = nil}
+  func clearMessage() {self._message = nil}
 
   var headers: [String] = []
 
@@ -113,11 +113,11 @@ struct Signalservice_WebSocketResponseMessage {
   /// Returns true if `body` has been explicitly set.
   var hasBody: Bool {return self._body != nil}
   /// Clears the value of `body`. Subsequent reads from it will return its default value.
-  mutating func clearBody() {self._body = nil}
+  func clearBody() {self._body = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  init() {}
+  public override required init() {}
 
   fileprivate var _requestID: UInt64? = nil
   fileprivate var _status: UInt32? = nil
@@ -125,7 +125,7 @@ struct Signalservice_WebSocketResponseMessage {
   fileprivate var _body: Data? = nil
 }
 
-struct Signalservice_WebSocketMessage {
+@objc class Signalservice_WebSocketMessage : NSObject {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -137,7 +137,7 @@ struct Signalservice_WebSocketMessage {
   /// Returns true if `type` has been explicitly set.
   var hasType: Bool {return _storage._type != nil}
   /// Clears the value of `type`. Subsequent reads from it will return its default value.
-  mutating func clearType() {_storage._type = nil}
+  func clearType() {_storage._type = nil}
 
   var request: Signalservice_WebSocketRequestMessage {
     get {return _storage._request ?? Signalservice_WebSocketRequestMessage()}
@@ -146,7 +146,7 @@ struct Signalservice_WebSocketMessage {
   /// Returns true if `request` has been explicitly set.
   var hasRequest: Bool {return _storage._request != nil}
   /// Clears the value of `request`. Subsequent reads from it will return its default value.
-  mutating func clearRequest() {_storage._request = nil}
+  func clearRequest() {_storage._request = nil}
 
   var response: Signalservice_WebSocketResponseMessage {
     get {return _storage._response ?? Signalservice_WebSocketResponseMessage()}
@@ -155,7 +155,7 @@ struct Signalservice_WebSocketMessage {
   /// Returns true if `response` has been explicitly set.
   var hasResponse: Bool {return _storage._response != nil}
   /// Clears the value of `response`. Subsequent reads from it will return its default value.
-  mutating func clearResponse() {_storage._response = nil}
+  func clearResponse() {_storage._response = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -188,7 +188,7 @@ struct Signalservice_WebSocketMessage {
 
   }
 
-  init() {}
+  public override required init() {}
 
   fileprivate var _storage = _StorageClass.defaultInstance
 }
@@ -207,7 +207,7 @@ extension Signalservice_WebSocketRequestMessage: SwiftProtobuf.Message, SwiftPro
     4: .same(proto: "requestId"),
   ]
 
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeSingularStringField(value: &self._verb)
@@ -260,7 +260,7 @@ extension Signalservice_WebSocketResponseMessage: SwiftProtobuf.Message, SwiftPr
     4: .same(proto: "body"),
   ]
 
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeSingularUInt64Field(value: &self._requestID)
@@ -327,14 +327,14 @@ extension Signalservice_WebSocketMessage: SwiftProtobuf.Message, SwiftProtobuf._
     }
   }
 
-  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+  fileprivate func _uniqueStorage() -> _StorageClass {
     if !isKnownUniquelyReferenced(&_storage) {
       _storage = _StorageClass(copying: _storage)
     }
     return _storage
   }
 
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     _ = _uniqueStorage()
     try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
       while let fieldNumber = try decoder.nextFieldNumber() {
