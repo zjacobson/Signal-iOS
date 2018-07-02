@@ -1310,6 +1310,14 @@ typedef enum : NSUInteger {
 
     const CGFloat kBarButtonSize = 44;
     NSMutableArray<UIBarButtonItem *> *barButtons = [NSMutableArray new];
+
+    UIImage *settingsImage = [UIImage imageNamed:@"button_settings_white"];
+    UIBarButtonItem *settingsButton = [[UIBarButtonItem alloc] initWithImage:settingsImage
+                                                                       style:UIBarButtonItemStylePlain
+                                                                      target:self
+                                                                      action:@selector(didTapSettingsButton:)];
+    [barButtons addObject:settingsButton];
+
     if ([self canCall]) {
         // We use UIButtons with [UIBarButtonItem initWithCustomView:...] instead of
         // UIBarButtonItem in order to ensure that these buttons are spaced tightly.
@@ -1414,16 +1422,6 @@ typedef enum : NSUInteger {
                                                NSFontAttributeName : self.headerView.subtitleFont,
                                                NSForegroundColorAttributeName : subtitleColor,
                                            }]];
-    } else {
-        [subtitleText appendAttributedString:
-                          [[NSAttributedString alloc]
-                              initWithString:NSLocalizedString(@"MESSAGES_VIEW_TITLE_SUBTITLE",
-                                                 @"The subtitle for the messages view title indicates that the "
-                                                 @"title can be tapped to access settings for this conversation.")
-                                  attributes:@{
-                                      NSFontAttributeName : self.headerView.subtitleFont,
-                                      NSForegroundColorAttributeName : subtitleColor,
-                                  }]];
     }
 
     self.headerView.attributedSubtitle = subtitleText;
@@ -4040,6 +4038,11 @@ typedef enum : NSUInteger {
 #pragma mark - ConversationHeaderViewDelegate
 
 - (void)didTapConversationHeaderView:(ConversationHeaderView *)conversationHeaderView
+{
+    [self showConversationSettings];
+}
+
+- (void)didTapSettingsButton:(UIBarButtonItem *)button
 {
     [self showConversationSettings];
 }
