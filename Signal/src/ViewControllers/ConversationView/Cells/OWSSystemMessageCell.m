@@ -152,6 +152,7 @@ typedef void (^SystemMessageActionBlock)(void);
     OWSAssert(self.conversationStyle);
     OWSAssert(self.viewItem);
     OWSAssert(transaction);
+    OWSAssert(self.topSpacingView);
 
     TSInteraction *interaction = self.viewItem.interaction;
 
@@ -186,7 +187,11 @@ typedef void (^SystemMessageActionBlock)(void);
 
         [self.button autoSetDimension:ALDimensionWidth toSize:buttonSize.width + self.buttonHPadding * 2.f],
 
-        [self.vStackView autoPinEdgeToSuperviewEdge:ALEdgeTop withInset:self.topVMargin],
+        [self.topSpacingView autoSetDimension:ALDimensionHeight toSize:self.viewItem.topSpacing],
+        [self.vStackView autoPinEdge:ALEdgeTop
+                              toEdge:ALEdgeBottom
+                              ofView:self.topSpacingView
+                          withOffset:self.topVMargin],
         [self.vStackView autoPinEdgeToSuperviewEdge:ALEdgeBottom withInset:self.bottomVMargin],
         [self.vStackView autoPinEdgeToSuperviewEdge:ALEdgeLeading
                                           withInset:self.conversationStyle.fullWidthGutterLeading],
@@ -352,6 +357,8 @@ typedef void (^SystemMessageActionBlock)(void);
     return [self.titleLabel sizeThatFits:CGSizeMake(maxTitleWidth, CGFLOAT_MAX)];
 }
 
+#pragma mark - Measurement
+
 - (CGSize)cellSizeWithTransaction:(YapDatabaseReadTransaction *)transaction
 {
     OWSAssert(self.conversationStyle);
@@ -376,6 +383,10 @@ typedef void (^SystemMessageActionBlock)(void);
     }
 
     result.height += self.topVMargin + self.bottomVMargin;
+
+    result.height += [self.viewItem topSpacing];
+
+    result = CGSizeCeil(result);
 
     return result;
 }

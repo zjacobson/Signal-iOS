@@ -115,12 +115,7 @@ NS_ASSUME_NONNULL_BEGIN
     CGFloat contentBottom = y;
 
     NSInteger row = 0;
-    id<ConversationViewLayoutItem> _Nullable previousLayoutItem = nil;
     for (id<ConversationViewLayoutItem> layoutItem in layoutItems) {
-        if (previousLayoutItem) {
-            y += [layoutItem vSpacingWithPreviousLayoutItem:previousLayoutItem];
-        }
-
         CGSize layoutSize = CGSizeCeil([layoutItem cellSizeWithTransaction:transaction]);
 
         // Ensure cell fits within view.
@@ -139,7 +134,6 @@ NS_ASSUME_NONNULL_BEGIN
         contentBottom = itemFrame.origin.y + itemFrame.size.height;
         y = contentBottom;
         row++;
-        previousLayoutItem = layoutItem;
     }
 
     contentBottom += self.conversationStyle.contentMarginBottom;

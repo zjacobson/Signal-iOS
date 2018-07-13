@@ -116,6 +116,7 @@ NS_ASSUME_NONNULL_BEGIN
     OWSAssert(self.conversationStyle.viewWidth > 0);
     OWSAssert(self.viewItem);
     OWSAssert([self.viewItem.interaction isKindOfClass:[OWSContactOffersInteraction class]]);
+    OWSAssert(self.topSpacingView);
 
     [self configureFonts];
 
@@ -134,7 +135,11 @@ NS_ASSUME_NONNULL_BEGIN
         [self.addToProfileWhitelistButton autoSetDimension:ALDimensionHeight toSize:self.buttonHeight],
         [self.blockButton autoSetDimension:ALDimensionHeight toSize:self.buttonHeight],
 
-        [self.stackView autoPinEdgeToSuperviewEdge:ALEdgeTop withInset:self.topVMargin],
+        [self.topSpacingView autoSetDimension:ALDimensionHeight toSize:self.viewItem.topSpacing],
+        [self.stackView autoPinEdge:ALEdgeTop
+                             toEdge:ALEdgeBottom
+                             ofView:self.topSpacingView
+                         withOffset:self.topVMargin],
         [self.stackView autoPinEdgeToSuperviewEdge:ALEdgeBottom withInset:self.bottomVMargin],
         [self.stackView autoPinEdgeToSuperviewEdge:ALEdgeLeading
                                          withInset:self.conversationStyle.fullWidthGutterLeading],
@@ -183,6 +188,8 @@ NS_ASSUME_NONNULL_BEGIN
     int buttonCount = ((interaction.hasBlockOffer ? 1 : 0) + (interaction.hasAddToContactsOffer ? 1 : 0)
         + (interaction.hasAddToProfileWhitelistOffer ? 1 : 0));
     result.height += buttonCount * (self.vSpacing + self.buttonHeight);
+
+    result.height += [self.viewItem topSpacing];
 
     return result;
 }

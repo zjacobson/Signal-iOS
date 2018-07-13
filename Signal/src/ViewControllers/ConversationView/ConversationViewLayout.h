@@ -12,8 +12,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (CGSize)cellSizeWithTransaction:(YapDatabaseReadTransaction *)transaction;
 
-- (CGFloat)vSpacingWithPreviousLayoutItem:(id<ConversationViewLayoutItem>)previousLayoutItem;
-
 @end
 
 #pragma mark -

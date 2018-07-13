@@ -273,6 +273,12 @@ NSString *NSStringForOWSMessageCellType(OWSMessageCellType cellType)
     return measurementCell;
 }
 
+- (CGFloat)updateTopSpacingWithPreviousLayoutItem:(nullable ConversationViewItem *)previousLayoutItem
+{
+    self.topSpacing
+        = (CGFloat)ceil(previousLayoutItem ? [self vSpacingWithPreviousLayoutItem:previousLayoutItem] : 0.f);
+}
+
 - (CGFloat)vSpacingWithPreviousLayoutItem:(ConversationViewItem *)previousLayoutItem
 {
     OWSAssert(previousLayoutItem);

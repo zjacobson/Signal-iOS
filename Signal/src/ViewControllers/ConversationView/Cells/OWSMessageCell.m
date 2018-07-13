@@ -137,6 +137,7 @@ NS_ASSUME_NONNULL_BEGIN
     OWSAssert(self.viewItem.interaction);
     OWSAssert([self.viewItem.interaction isKindOfClass:[TSMessage class]]);
     OWSAssert(self.messageBubbleView);
+    OWSAssert(self.topSpacingView);
 
     self.messageBubbleView.viewItem = self.viewItem;
     self.messageBubbleView.cellMediaCache = self.delegate.cellMediaCache;
@@ -150,15 +151,18 @@ NS_ASSUME_NONNULL_BEGIN
         [self.headerView loadForDisplayWithViewItem:self.viewItem conversationStyle:self.conversationStyle];
         [self.contentView addSubview:self.headerView];
         [self.viewConstraints addObjectsFromArray:@[
+            [self.topSpacingView autoSetDimension:ALDimensionHeight toSize:self.viewItem.topSpacing],
+            [self.headerView autoPinEdge:ALEdgeTop toEdge:ALEdgeBottom ofView:self.topSpacingView],
+
             [self.headerView autoSetDimension:ALDimensionHeight toSize:headerHeight],
             [self.headerView autoPinLeadingToSuperviewMarginWithInset:self.conversationStyle.fullWidthGutterLeading],
             [self.headerView autoPinTrailingToSuperviewMarginWithInset:self.conversationStyle.fullWidthGutterTrailing],
-            [self.headerView autoPinEdgeToSuperviewEdge:ALEdgeTop],
             [self.messageBubbleView autoPinEdge:ALEdgeTop toEdge:ALEdgeBottom ofView:self.headerView],
         ]];
     } else {
         [self.viewConstraints addObjectsFromArray:@[
-            [self.messageBubbleView autoPinEdgeToSuperviewEdge:ALEdgeTop],
+            [self.topSpacingView autoSetDimension:ALDimensionHeight toSize:self.viewItem.topSpacing],
+            [self.messageBubbleView autoPinEdge:ALEdgeTop toEdge:ALEdgeBottom ofView:self.topSpacingView],
         ]];
     }
 
@@ -351,6 +355,8 @@ NS_ASSUME_NONNULL_BEGIN
     if (self.shouldHaveSendFailureBadge) {
         cellSize.width += self.sendFailureBadgeSize + self.sendFailureBadgeSpacing;
     }
+
+    cellSize.height += [self.viewItem topSpacing];
 
     cellSize = CGSizeCeil(cellSize);
 

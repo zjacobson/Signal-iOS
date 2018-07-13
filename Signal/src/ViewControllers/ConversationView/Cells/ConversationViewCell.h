@@ -85,6 +85,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, nullable) ConversationStyle *conversationStyle;
 
+@property (nonatomic) UIView *topSpacingView;
+
 - (void)loadForDisplayWithTransaction:(YapDatabaseReadTransaction *)transaction;
 
 - (CGSize)cellSizeWithTransaction:(YapDatabaseReadTransaction *)transaction;

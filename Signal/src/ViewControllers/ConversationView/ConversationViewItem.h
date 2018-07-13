@@ -65,6 +65,8 @@ NSString *NSStringForOWSMessageCellType(OWSMessageCellType cellType);
 @property (nonatomic) BOOL isFirstInCluster;
 @property (nonatomic) BOOL isLastInCluster;
 
+@property (nonatomic) CGFloat topSpacing;
+
 @property (nonatomic, nullable) OWSUnreadIndicator *unreadIndicator;
 
 @property (nonatomic, readonly) ConversationStyle *conversationStyle;
@@ -81,6 +83,8 @@ NSString *NSStringForOWSMessageCellType(OWSMessageCellType cellType);
 - (void)replaceInteraction:(TSInteraction *)interaction transaction:(YapDatabaseReadTransaction *)transaction;
 
 - (void)clearCachedLayoutState;
+
+- (CGFloat)updateTopSpacingWithPreviousLayoutItem:(nullable ConversationViewItem *)previousLayoutItem;
 
 #pragma mark - Audio Playback
 

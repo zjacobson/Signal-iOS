@@ -4,40 +4,33 @@
 
 #import "ConversationViewCell.h"
 #import "ConversationViewItem.h"
+#import <SignalMessaging/UIView+OWS.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 @implementation ConversationViewCell
 
-- (void)prepareForReuse
+// `[UIView init]` invokes `[self initWithFrame:...]`.
+- (instancetype)initWithFrame:(CGRect)frame
 {
-    [super prepareForReuse];
-
-    self.viewItem = nil;
-    self.delegate = nil;
-    self.isCellVisible = NO;
-    self.conversationStyle = nil;
-}
-
-- (void)loadForDisplayWithTransaction:(YapDatabaseReadTransaction *)transaction
-{
-    OWS_ABSTRACT_METHOD();
-}
-
-- (CGSize)cellSizeWithTransaction:(YapDatabaseReadTransaction *)transaction
-{
-    OWS_ABSTRACT_METHOD();
-
-    return CGSizeZero;
-}
-
-- (void)setIsCellVisible:(BOOL)isCellVisible
-{
-    _isCellVisible = isCellVisible;
-
-    if (isCellVisible) {
-        [self layoutIfNeeded];
+    if (self = [super initWithFrame:frame]) {
+        [self configureTopSpacingView];
     }
+
+    return self;
+}
+
+- (void)configureTopSpacingView
+{
+    // Ensure only called once.
+    OWSAssert(!self.topSpacingView);
+
+    _topSpacingView = [UIView containerView];
+    self.topSpacingView.userInteractionEnabled = YES;
+    [self.contentView addSubview:self.topSpacingView];
+    [self.topSpacingView autoPinEdgeToSuperviewEdge:ALEdgeTop];
+    [self.topSpacingView autoPinEdgeToSuperviewEdge:ALEdgeLeading];
+    [self.topSpacingView autoPinEdgeToSuperviewEdge:ALEdgeTrailing];
 }
 
 @end

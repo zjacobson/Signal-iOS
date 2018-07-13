@@ -4906,6 +4906,8 @@ typedef enum : NSUInteger {
         viewItem.shouldShowSenderAvatar = shouldShowSenderAvatar;
         viewItem.shouldHideFooter = shouldHideFooter;
         viewItem.senderName = senderName;
+
+        [viewItem updateTopSpacingWithPreviousLayoutItem:previousViewItem];
     }
     if (unreadIndicator) {
         // This isn't necessarily a bug - all of the interactions after the
