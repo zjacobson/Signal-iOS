@@ -44,6 +44,13 @@ NS_ASSUME_NONNULL_BEGIN
                     transaction:(YapDatabaseReadWriteTransaction *)transaction;
 + (void)markAccountAsNotRegistered:(NSString *)recipientId transaction:(YapDatabaseReadWriteTransaction *)transaction;
 
+#pragma mark - Known Phone Numbers
+
++ (void)addKnownPhoneNumbers:(NSArray<NSString *> *)phoneNumbers
+                 transaction:(YapDatabaseReadWriteTransaction *)transaction;
++ (void)addKnownPhoneNumber:(NSString *)phoneNumber transaction:(YapDatabaseReadWriteTransaction *)transaction;
++ (NSArray<NSString *> *)allKnownPhoneNumbersWithTransaction:(YapDatabaseReadWriteTransaction *)transaction;
+
 @end
 
 NS_ASSUME_NONNULL_END

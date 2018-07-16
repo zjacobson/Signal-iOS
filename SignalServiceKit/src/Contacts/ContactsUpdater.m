@@ -3,7 +3,6 @@
 //
 
 #import "ContactsUpdater.h"
-#import "Contact.h"
 #import "Cryptography.h"
 #import "OWSError.h"
 #import "OWSPrimaryStorage.h"
@@ -83,36 +82,6 @@ NS_ASSUME_NONNULL_BEGIN
                                  } else {
                                      failure(OWSErrorMakeNoSuchSignalRecipientError());
                                  }
-                             }
-                             failure:failure];
-}
-
-// TODO: Modify this to support delta lookups.
-- (void)updateSignalContactIntersectionWithABContacts:(NSArray<Contact *> *)abContacts
-                                              success:(void (^)(void))success
-                                              failure:(void (^)(NSError *error))failure
-{
-    NSMutableSet<NSString *> *abPhoneNumbers = [NSMutableSet set];
-
-    for (Contact *contact in abContacts) {
-        for (PhoneNumber *phoneNumber in contact.parsedPhoneNumbers) {
-            [abPhoneNumbers addObject:phoneNumber.toE164];
-        }
-    }
-
-    NSMutableSet *recipientIds = [NSMutableSet set];
-    [OWSPrimaryStorage.dbReadConnection readWithBlock:^(YapDatabaseReadTransaction * transaction) {
-        // TODO: Don't do this.
-        NSArray *allRecipientKeys = [transaction allKeysInCollection:[SignalRecipient collection]];
-        [recipientIds addObjectsFromArray:allRecipientKeys];
-    }];
-
-    NSMutableSet<NSString *> *allContacts = [[abPhoneNumbers setByAddingObjectsFromSet:recipientIds] mutableCopy];
-
-    [self contactIntersectionWithSet:allContacts
-                             success:^(NSSet<SignalRecipient *> *recipients) {
-                                 DDLogInfo(@"%@ successfully intersected contacts.", self.logTag);
-                                 success();
                              }
                              failure:failure];
 }
