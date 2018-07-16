@@ -78,7 +78,7 @@ NS_ASSUME_NONNULL_BEGIN
     [self contactIntersectionWithSet:[NSSet setWithArray:identifiers]
                              success:^(NSSet<SignalRecipient *> *recipients) {
                                  if (recipients.count > 0) {
-                                     success([recipients copy]);
+                                     success(recipients.allObjects);
                                  } else {
                                      failure(OWSErrorMakeNoSuchSignalRecipientError());
                                  }

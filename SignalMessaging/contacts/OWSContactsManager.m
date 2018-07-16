@@ -30,7 +30,7 @@ NSString *const OWSContactsManagerSignalAccountsDidChangeNotification
 NSString *const OWSContactsManagerCollection = @"OWSContactsManagerCollection";
 NSString *const OWSContactsManagerKeyLastKnownContactPhoneNumbers
     = @"OWSContactsManagerKeyLastKnownContactPhoneNumbers";
-NSString *const OWSContactsManagerKeyNextFullIntersectionDate = @"OWSContactsManagerKeyNextFullIntersectionDate";
+NSString *const OWSContactsManagerKeyNextFullIntersectionDate = @"OWSContactsManagerKeyNextFullIntersectionDate2";
 
 @interface OWSContactsManager () <SystemContactsFetcherDelegate>
 
@@ -225,7 +225,7 @@ NSString *const OWSContactsManagerKeyNextFullIntersectionDate = @"OWSContactsMan
     } else {
         shouldClearStaleCache = YES;
     }
-    [self updateWithContacts:contacts shouldClearStaleCache:shouldClearStaleCache];
+    [self updateWithContacts:contacts isUserRequested:isUserRequested shouldClearStaleCache:shouldClearStaleCache];
 }
 
 - (void)systemContactsFetcher:(SystemContactsFetcher *)systemContactsFetcher
@@ -234,17 +234,15 @@ NSString *const OWSContactsManagerKeyNextFullIntersectionDate = @"OWSContactsMan
     if (authorizationStatus == ContactStoreAuthorizationStatusRestricted
         || authorizationStatus == ContactStoreAuthorizationStatusDenied) {
         // Clear the contacts cache if access to the system contacts is revoked.
-        [self updateWithContacts:@[] shouldClearStaleCache:YES];
+        [self updateWithContacts:@[] isUserRequested:NO shouldClearStaleCache:YES];
     }
 }
 
 #pragma mark - Intersection
 
 - (NSSet<NSString *> *)recipientIdsForIntersectionWithContacts:(NSArray<Contact *> *)contacts
-                                                   transaction:(YapDatabaseReadWriteTransaction *)transaction
 {
     OWSAssert(contacts);
-    OWSAssert(transaction);
 
     NSMutableSet<NSString *> *recipientIds = [NSMutableSet set];
 
@@ -254,32 +252,33 @@ NSString *const OWSContactsManagerKeyNextFullIntersectionDate = @"OWSContactsMan
         }
     }
 
-    [SignalRecipient addKnownPhoneNumbers:recipientIds transaction:transaction];
-
-    [recipientIds addObjectsFromArray:[SignalRecipient allKnownPhoneNumbersWithTransaction:transaction]];
-
     return recipientIds;
 }
 
-- (void)intersectContacts:(NSArray<Contact *> *)contacts completion:(void (^)(NSError *_Nullable error))completion
+- (void)intersectContacts:(NSArray<Contact *> *)contacts
+          isUserRequested:(BOOL)isUserRequested
+               completion:(void (^)(NSError *_Nullable error))completion
 {
     OWSAssert(contacts);
     OWSAssert(completion);
 
     dispatch_async(self.serialQueue, ^{
         __block BOOL isFullIntersection = YES;
+        __block NSSet<NSString *> *allContactRecipientIds;
         __block NSSet<NSString *> *recipientIdsForIntersection;
-        [self.dbReadConnection readWriteWithBlock:^(YapDatabaseReadWriteTransaction *transaction) {
-            NSDate *_Nullable nextFullIntersectionDate =
-                [transaction dateForKey:OWSContactsManagerKeyNextFullIntersectionDate
-                           inCollection:OWSContactsManagerCollection];
-            if (nextFullIntersectionDate && [nextFullIntersectionDate isAfterNow]) {
-                isFullIntersection = NO;
+        [self.dbReadConnection readWithBlock:^(YapDatabaseReadTransaction *transaction) {
+            // Contact updates initiated by the user should always do a full intersection.
+            if (!isUserRequested) {
+                NSDate *_Nullable nextFullIntersectionDate =
+                    [transaction dateForKey:OWSContactsManagerKeyNextFullIntersectionDate
+                               inCollection:OWSContactsManagerCollection];
+                if (nextFullIntersectionDate && [nextFullIntersectionDate isAfterNow]) {
+                    isFullIntersection = NO;
+                }
             }
 
-            NSSet<NSString *> *allRecipientIdsForIntersection =
-                [self recipientIdsForIntersectionWithContacts:contacts transaction:transaction];
-            recipientIdsForIntersection = allRecipientIdsForIntersection;
+            allContactRecipientIds = [self recipientIdsForIntersectionWithContacts:contacts];
+            recipientIdsForIntersection = allContactRecipientIds;
 
             if (!isFullIntersection) {
                 NSSet<NSString *> *_Nullable lastKnownContactPhoneNumbers =
@@ -288,7 +287,7 @@ NSString *const OWSContactsManagerKeyNextFullIntersectionDate = @"OWSContactsMan
                 if (lastKnownContactPhoneNumbers) {
                     // Do a "delta" sync which only intersects recipient ids not included
                     // in the last full intersection.
-                    NSMutableSet<NSString *> *newRecipientIds = [allRecipientIdsForIntersection mutableCopy];
+                    NSMutableSet<NSString *> *newRecipientIds = [allContactRecipientIds mutableCopy];
                     [newRecipientIds minusSet:lastKnownContactPhoneNumbers];
                     recipientIdsForIntersection = newRecipientIds;
                 } else {
@@ -301,6 +300,10 @@ NSString *const OWSContactsManagerKeyNextFullIntersectionDate = @"OWSContactsMan
 
         if (recipientIdsForIntersection.count < 1) {
             DDLogInfo(@"%@ Skipping intersection; no contacts to intersect.", self.logTag);
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                completion(nil);
+            });
+            return;
         } else if (isFullIntersection) {
             DDLogInfo(@"%@ Doing full intersection with %zd contacts.", self.logTag, recipientIdsForIntersection.count);
         } else {
@@ -310,11 +313,8 @@ NSString *const OWSContactsManagerKeyNextFullIntersectionDate = @"OWSContactsMan
 
         [self intersectContacts:recipientIdsForIntersection
             retryDelaySeconds:1.0
-            success:^(NSSet<NSString *> *registeredRecipientIds) {
-                if (isFullIntersection) {
-                    [self processFullIntersectionResults:registeredRecipientIds
-                             recipientIdsForIntersection:recipientIdsForIntersection];
-                }
+            success:^(NSSet<SignalRecipient *> *registeredRecipients) {
+                [self markIntersectionAsComplete:allContactRecipientIds isFullIntersection:isFullIntersection];
 
                 completion(nil);
             }
@@ -324,27 +324,33 @@ NSString *const OWSContactsManagerKeyNextFullIntersectionDate = @"OWSContactsMan
     });
 }
 
-- (void)processFullIntersectionResults:(NSSet<NSString *> *)registeredRecipientIds
-           recipientIdsForIntersection:(NSSet<NSString *> *)recipientIdsForIntersection
+- (void)markIntersectionAsComplete:(NSSet<NSString *> *)recipientIdsForIntersection
+                isFullIntersection:(BOOL)isFullIntersection
 {
-    OWSAssert(registeredRecipientIds);
     OWSAssert(recipientIdsForIntersection.count > 0);
 
     dispatch_async(self.serialQueue, ^{
         [self.dbReadConnection readWriteWithBlock:^(YapDatabaseReadWriteTransaction *transaction) {
-            [transaction setObject:registeredRecipientIds
+            [transaction setObject:recipientIdsForIntersection
                             forKey:OWSContactsManagerKeyLastKnownContactPhoneNumbers
                       inCollection:OWSContactsManagerCollection];
-            [transaction setObject:[NSDate new]
-                            forKey:OWSContactsManagerKeyNextFullIntersectionDate
-                      inCollection:OWSContactsManagerCollection];
+
+            if (isFullIntersection) {
+                // Don't do a full intersection more often than once every 6 hours.
+                const NSTimeInterval kFullIntersectionRate = 6 * kHourInterval;
+                NSDate *nextFullIntersectionDate =
+                    [NSDate dateWithTimeIntervalSince1970:[NSDate new].timeIntervalSince1970 + kFullIntersectionRate];
+                [transaction setDate:nextFullIntersectionDate
+                              forKey:OWSContactsManagerKeyNextFullIntersectionDate
+                        inCollection:OWSContactsManagerCollection];
+            }
         }];
     });
 }
 
 - (void)intersectContacts:(NSSet<NSString *> *)recipientIds
         retryDelaySeconds:(double)retryDelaySeconds
-                  success:(void (^)(NSSet<NSString *> *))successParameter
+                  success:(void (^)(NSSet<SignalRecipient *> *))successParameter
                   failure:(void (^)(NSError *))failureParameter
 {
     OWSAssert(recipientIds.count > 0);
@@ -352,7 +358,7 @@ NSString *const OWSContactsManagerKeyNextFullIntersectionDate = @"OWSContactsMan
     OWSAssert(successParameter);
     OWSAssert(failureParameter);
 
-    void (^success)(NSArray<NSString *> *) = ^(NSArray<NSString *> *registeredRecipientIds) {
+    void (^success)(NSArray<SignalRecipient *> *) = ^(NSArray<SignalRecipient *> *registeredRecipientIds) {
         DDLogInfo(@"%@ Successfully intersected contacts.", self.logTag);
         successParameter([NSSet setWithArray:registeredRecipientIds]);
     };
@@ -398,7 +404,9 @@ NSString *const OWSContactsManagerKeyNextFullIntersectionDate = @"OWSContactsMan
     [self.avatarCache removeAllImagesForKey:recipientId];
 }
 
-- (void)updateWithContacts:(NSArray<Contact *> *)contacts shouldClearStaleCache:(BOOL)shouldClearStaleCache
+- (void)updateWithContacts:(NSArray<Contact *> *)contacts
+           isUserRequested:(BOOL)isUserRequested
+     shouldClearStaleCache:(BOOL)shouldClearStaleCache
 {
     dispatch_async(self.serialQueue, ^{
         NSMutableDictionary<NSString *, Contact *> *allContactsMap = [NSMutableDictionary new];
@@ -420,6 +428,7 @@ NSString *const OWSContactsManagerKeyNextFullIntersectionDate = @"OWSContactsMan
             [self.avatarCache removeAllImages];
 
             [self intersectContacts:contacts
+                    isUserRequested:isUserRequested
                          completion:^(NSError *_Nullable error) {
                              // TODO: Should we do this on error?
                              [self buildSignalAccountsAndClearStaleCache:shouldClearStaleCache];

@@ -10,8 +10,6 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-NSString *const SignalRecipientKnownPhoneNumbersCollection = @"OWSContactsManagerCollection";
-
 @interface SignalRecipient ()
 
 @property (nonatomic) NSOrderedSet *devices;
@@ -22,40 +20,11 @@ NSString *const SignalRecipientKnownPhoneNumbersCollection = @"OWSContactsManage
 
 @implementation SignalRecipient
 
-#pragma mark - Known Phone Numbers
-
 - (void)saveWithTransaction:(YapDatabaseReadWriteTransaction *)transaction
 {
     [super saveWithTransaction:transaction];
 
     DDLogVerbose(@"%@ saved signal recipient: %@", self.logTag, self.recipientId);
-
-    [SignalRecipient addKnownPhoneNumber:self.recipientId transaction:transaction];
-}
-
-+ (void)addKnownPhoneNumbers:(NSArray<NSString *> *)phoneNumbers
-                 transaction:(YapDatabaseReadWriteTransaction *)transaction
-{
-    for (NSString *phoneNumber in phoneNumbers) {
-        [self addKnownPhoneNumber:phoneNumber transaction:transaction];
-    }
-}
-
-+ (void)addKnownPhoneNumber:(NSString *)phoneNumber transaction:(YapDatabaseReadWriteTransaction *)transaction
-{
-    PhoneNumber *_Nullable parsedPhoneNumber = [PhoneNumber tryParsePhoneNumberFromE164:phoneNumber];
-    if (!parsedPhoneNumber || ![[parsedPhoneNumber toE164] isEqualToString:phoneNumber]) {
-        OWSProdLogAndFail(@"%@ invalid known phone number: %@", self.logTag, phoneNumber);
-        return;
-    }
-
-    // The value is insignificant; we only use the keys of this collection.
-    [transaction setObject:@(1) forKey:phoneNumber inCollection:SignalRecipientKnownPhoneNumbersCollection];
-}
-
-+ (NSArray<NSString *> *)allKnownPhoneNumbersWithTransaction:(YapDatabaseReadWriteTransaction *)transaction
-{
-    return [transaction allKeysInCollection:SignalRecipientKnownPhoneNumbersCollection];
 }
 
 #pragma mark -
