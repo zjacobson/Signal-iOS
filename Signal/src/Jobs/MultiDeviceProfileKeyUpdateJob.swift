@@ -57,6 +57,10 @@ import SignalMessaging
             owsFail("\(self.logTag) in \(#function) dataSource was unexpectedly nil")
             return
         }
+        guard attachmentDataSource.dataLength() > 0 else {
+            Logger.info("\(logTag) skipping empty contacts sync message.")
+            return
+        }
 
         self.messageSender.enqueueTemporaryAttachment(attachmentDataSource,
             contentType: OWSMimeTypeApplicationOctetStream,

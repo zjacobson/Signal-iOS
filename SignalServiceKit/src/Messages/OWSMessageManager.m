@@ -660,6 +660,11 @@ NS_ASSUME_NONNULL_BEGIN
                 DataSource *dataSource = [DataSourceValue
                     dataSourceWithSyncMessageData:[syncContactsMessage
                                                       buildPlainTextAttachmentDataWithTransaction:transaction]];
+                if (dataSource.dataLength < 1) {
+                    // Don't bother sending empty sync messages if we have no contacts to sync.
+                    DDLogInfo(@"%@ skipping empty contact sync message.", self.logTag);
+                    return;
+                }
                 [self.messageSender enqueueTemporaryAttachment:dataSource
                     contentType:OWSMimeTypeApplicationOctetStream
                     inMessage:syncContactsMessage
@@ -676,6 +681,11 @@ NS_ASSUME_NONNULL_BEGIN
             DataSource *dataSource = [DataSourceValue
                 dataSourceWithSyncMessageData:[syncGroupsMessage
                                                   buildPlainTextAttachmentDataWithTransaction:transaction]];
+            if (dataSource.dataLength < 1) {
+                // Don't bother sending empty sync messages if we have no groups to sync.
+                DDLogInfo(@"%@ skipping empty group sync message.", self.logTag);
+                return;
+            }
             [self.messageSender enqueueTemporaryAttachment:dataSource
                 contentType:OWSMimeTypeApplicationOctetStream
                 inMessage:syncGroupsMessage

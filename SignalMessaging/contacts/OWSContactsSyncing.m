@@ -140,6 +140,13 @@ NSString *const kOWSPrimaryStorageOWSContactsSyncingLastMessageKey
         self.isRequestInFlight = YES;
 
         DataSource *dataSource = [DataSourceValue dataSourceWithSyncMessageData:messageData];
+
+        if (dataSource.dataLength < 1) {
+            // Don't bother sending empty sync messages if we have no contacts to sync.
+            DDLogInfo(@"%@ skipping empty contact sync message.", self.logTag);
+            return;
+        }
+
         [self.messageSender enqueueTemporaryAttachment:dataSource
             contentType:OWSMimeTypeApplicationOctetStream
             inMessage:syncContactsMessage

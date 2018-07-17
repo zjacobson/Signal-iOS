@@ -74,6 +74,10 @@ class ConversationConfigurationSyncOperation: OWSOperation {
             self.reportAssertionError(description: "unable to build attachment data source")
             return
         }
+        guard attachmentDataSource.dataLength() > 0 else {
+            Logger.info("\(logTag) skipping empty contacts sync message.")
+            return
+        }
 
         self.sendConfiguration(attachmentDataSource: attachmentDataSource, syncMessage: syncMessage)
     }
@@ -93,6 +97,10 @@ class ConversationConfigurationSyncOperation: OWSOperation {
 
         guard let attachmentDataSource = dataSource else {
             self.reportAssertionError(description: "unable to build attachment data source")
+            return
+        }
+        guard attachmentDataSource.dataLength() > 0 else {
+            Logger.info("\(logTag) skipping empty group sync message.")
             return
         }
 
