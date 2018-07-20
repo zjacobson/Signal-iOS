@@ -190,6 +190,7 @@ class LegacyContactDiscoveryBatchOperation: OWSOperation {
 
 }
 
+public
 class CDSBatchOperation: OWSOperation {
 
     private let recipientIdsToLookup: [String]
@@ -199,10 +200,14 @@ class CDSBatchOperation: OWSOperation {
         return TSNetworkManager.shared()
     }
 
+    private var contactDiscoveryService: ContactDiscoveryService {
+        return ContactDiscoveryService.shared()
+    }
+
     // MARK: Initializers
 
-    required init(recipientIdsToLookup: [String]) {
-        self.recipientIdsToLookup = recipientIdsToLookup
+    public required init(recipientIdsToLookup: [String]) {
+        self.recipientIdsToLookup = Set(recipientIdsToLookup).map { $0 }
         self.registeredRecipientIds = Set()
 
         super.init()
@@ -213,7 +218,7 @@ class CDSBatchOperation: OWSOperation {
     // MARK: OWSOperationOverrides
 
     // Called every retry, this is where the bulk of the operation's work should go.
-    override func run() {
+    override public func run() {
         Logger.debug("\(logTag) in \(#function)")
 
         guard !isCancelled else {
@@ -222,8 +227,7 @@ class CDSBatchOperation: OWSOperation {
             return
         }
 
-        let cds = ContactDiscoveryService.shared()
-        cds.performRemoteAttestation(success: { (remoteAttestation: RemoteAttestation) in
+        contactDiscoveryService.performRemoteAttestation(success: { (remoteAttestation: RemoteAttestation) in
             self.makeContactDiscoveryRequest(remoteAttestation: remoteAttestation)
         },
                                      failure: self.reportError)
@@ -237,9 +241,9 @@ class CDSBatchOperation: OWSOperation {
             return
         }
 
-        let encryptionResult: AddressEncryptionResult
+        let encryptionResult: AES25GCMEncryptionResult
         do {
-            encryptionResult = try encryptedAddresses(recipientIds: Set(self.recipientIdsToLookup), remoteAttestation: remoteAttestation)
+            encryptionResult = try encryptAddresses(recipientIds: recipientIdsToLookup, remoteAttestation: remoteAttestation)
         } catch {
             reportError(error)
             return
@@ -255,8 +259,8 @@ class CDSBatchOperation: OWSOperation {
          mac:            (16 bytes, base64) MAC for encrypted data
          */
         let request = OWSRequestFactory.enclaveContactDiscoveryRequest(withId: remoteAttestation.requestId,
-                                                                       addressCount: encryptionResult.addressCount,
-                                                                       encryptedAddressData: encryptionResult.encryptedAddressData,
+                                                                       addressCount: UInt(recipientIdsToLookup.count),
+                                                                       encryptedAddressData: encryptionResult.ciphertext,
                                                                        cryptIv: encryptionResult.initializationVector,
                                                                        cryptMac: encryptionResult.authTag,
                                                                        enclaveId: remoteAttestation.enclaveId,
@@ -267,7 +271,7 @@ class CDSBatchOperation: OWSOperation {
         self.networkManager.makeRequest(request,
                                         success: { (task, responseDict) in
                                             do {
-                                                self.registeredRecipientIds = try self.parse(response: responseDict)
+                                                self.registeredRecipientIds = try self.handle(response: responseDict, remoteAttestation: remoteAttestation)
                                                 self.reportSuccess()
                                             } catch {
                                                 self.reportError(error)
@@ -291,14 +295,7 @@ class CDSBatchOperation: OWSOperation {
         })
     }
 
-    struct AddressEncryptionResult {
-        let addressCount: UInt
-        let encryptedAddressData: Data
-        let initializationVector: Data
-        let authTag: Data
-    }
-
-    func encryptedAddresses(recipientIds: Set<String>, remoteAttestation: RemoteAttestation) throws -> AddressEncryptionResult {
+    func encryptAddresses(recipientIds: [String], remoteAttestation: RemoteAttestation) throws -> AES25GCMEncryptionResult {
 
         /*
          Request:
@@ -310,9 +307,7 @@ class CDSBatchOperation: OWSOperation {
          mac:            (16 bytes, base64) MAC for encrypted data
         */
 
-        let addressCount: UInt = UInt(recipientIds.count)
-
-        let addressPlainTextData = encodePhoneNumbers(recipientIds: recipientIds)
+        let addressPlainTextData = try type(of: self).encodePhoneNumbers(recipientIds: recipientIds)
 
         guard let encryptionResult = Cryptography.encryptAESGCM(plainTextData: addressPlainTextData,
                                                                 additionalAuthenticatedData: remoteAttestation.requestId,
@@ -326,34 +321,24 @@ class CDSBatchOperation: OWSOperation {
                                                           additionalAuthenticatedData: remoteAttestation.requestId,
                                                           authTag: encryptionResult.authTag,
                                                           key: remoteAttestation.keys.clientKey)
+        assert(decryptionResult == addressPlainTextData)
 
-        if decryptionResult == addressPlainTextData {
-            Logger.debug("\(logTag) in \(#function) Decryption Matched!")
-        } else {
-            Logger.debug("\(logTag) in \(#function) Decryption Mismatch!")
-        }
-
-        return AddressEncryptionResult(addressCount: addressCount,
-                                       encryptedAddressData: encryptionResult.ciphertext,
-                                       initializationVector: encryptionResult.initializationVector,
-                                       authTag: encryptionResult.authTag)
+        return encryptionResult
     }
 
-    func encodePhoneNumbers(recipientIds: Set<String>) -> Data {
+    class func encodePhoneNumbers(recipientIds: [String]) throws -> Data {
         var output = Data()
 
-        recipientIds.compactMap { recipientId in
+        try recipientIds.map { recipientId in
             guard recipientId.prefix(1) == "+" else {
-                owsFail("\(self.logTag) in \(#function) unexpected initial char in")
-                return nil
+                throw CDSBatchOperationError.assertionError(description: "unexpected id format")
             }
 
             let numericPortionIndex = recipientId.index(after: recipientId.startIndex)
             let numericPortion = recipientId.suffix(from: numericPortionIndex)
 
             guard let numericIdentifier = UInt64(numericPortion), numericIdentifier > 99 else {
-                owsFail("\(self.logTag) in \(#function) unexpectedly short identifier")
-                return nil
+                throw CDSBatchOperationError.assertionError(description: "unexpectedly short identifier")
             }
 
             return numericIdentifier
@@ -371,7 +356,38 @@ class CDSBatchOperation: OWSOperation {
         case assertionError(description: String)
     }
 
-    func parse(response: Any?) throws -> Set<String> {
+    func handle(response: Any?, remoteAttestation: RemoteAttestation) throws -> Set<String> {
+        let isIncludedData: Data = try parseAndDecrypt(response: response, remoteAttestation: remoteAttestation)
+        guard let isIncluded: [Bool] = type(of: self).boolArray(data: isIncludedData) else {
+            throw CDSBatchOperationError.assertionError(description: "isIncluded was unexpectedly nil")
+        }
+
+        return try match(recipientIds: self.recipientIdsToLookup, isIncluded: isIncluded)
+    }
+
+    class func boolArray(data: Data) -> [Bool]? {
+        var bools: [Bool]? = nil
+        data.withUnsafeBytes { (bytes: UnsafePointer<Bool>) -> Void in
+            let buffer = UnsafeBufferPointer(start: bytes, count: data.count)
+            bools = Array(buffer)
+        }
+
+        return bools
+    }
+
+    func match(recipientIds: [String], isIncluded: [Bool]) throws -> Set<String> {
+        guard recipientIds.count == isIncluded.count else {
+            throw CDSBatchOperationError.assertionError(description: "length mismatch for isIncluded/recipientIds")
+        }
+
+        let includedRecipientIds: [String] = (0..<recipientIds.count).compactMap { index in
+            isIncluded[index] ? recipientIds[index] : nil
+        }
+
+        return Set(includedRecipientIds)
+    }
+
+    func parseAndDecrypt(response: Any?, remoteAttestation: RemoteAttestation) throws -> Data {
         /*
         Response:
         A successful (HTTP 200) response json object consists of:
@@ -381,7 +397,44 @@ class CDSBatchOperation: OWSOperation {
             mac:            (16 bytes, base64) MAC for encrypted data
         */
 
-        throw CDSBatchOperationError.parseError(description: "unimplemented")
+        guard let responseDict = response as? [String: AnyObject] else {
+            throw CDSBatchOperationError.parseError(description: "missing response dict")
+        }
+
+        guard let cipherTextEncoded = responseDict["data"] as? String else {
+            throw CDSBatchOperationError.parseError(description: "missing `data`")
+        }
+
+        guard let cipherText = Data(base64Encoded: cipherTextEncoded) else {
+            throw CDSBatchOperationError.parseError(description: "failed to decode `data`")
+        }
+
+        guard let initializationVectorEncoded = responseDict["iv"] as? String else {
+            throw CDSBatchOperationError.parseError(description: "missing `iv`")
+        }
+
+        guard let initializationVector = Data(base64Encoded: initializationVectorEncoded) else {
+            throw CDSBatchOperationError.parseError(description: "failed to decode `iv`")
+        }
+
+        guard let authTagEncoded = responseDict["mac"] as? String else {
+            throw CDSBatchOperationError.parseError(description: "missing `mac`")
+        }
+
+        guard let authTag = Data(base64Encoded: authTagEncoded) else {
+            throw CDSBatchOperationError.parseError(description: "failed to decode `mac`")
+        }
+
+        guard let plainText = Cryptography.decryptAESGCM(withInitializationVector: initializationVector,
+                                                          ciphertext: cipherText,
+                                                          additionalAuthenticatedData: nil,
+                                                          authTag: authTag,
+                                                          key: remoteAttestation.keys.serverKey) else {
+
+                                                            throw CDSBatchOperationError.parseError(description: "decryption failed")
+        }
+
+        return plainText
     }
 }
 
