@@ -261,7 +261,8 @@ class CDSBatchOperation: OWSOperation {
                                                                        cryptMac: encryptionResult.authTag,
                                                                        enclaveId: remoteAttestation.enclaveId,
                                                                        authUsername: remoteAttestation.authUsername,
-                                                                       authPassword: remoteAttestation.authToken)
+                                                                       authPassword: remoteAttestation.authToken,
+                                                                       cookies: remoteAttestation.cookies)
 
         self.networkManager.makeRequest(request,
                                         success: { (task, responseDict) in

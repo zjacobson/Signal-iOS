@@ -119,12 +119,10 @@ NS_ASSUME_NONNULL_BEGIN
 @interface RemoteAttestation ()
 
 @property (nonatomic) RemoteAttestationKeys *keys;
-// TODO: Do we need to support multiple cookies?
-@property (nonatomic) NSString *cookie;
+@property (nonatomic) NSArray<NSHTTPCookie *> *cookies;
 @property (nonatomic) NSData *requestId;
 @property (nonatomic) NSString *enclaveId;
 @property (nonatomic) RemoteAttestationAuth *auth;
-
 
 @end
 
@@ -365,20 +363,12 @@ NS_ASSUME_NONNULL_BEGIN
         OWSProdLogAndFail(@"%@ unexpected response type.", self.logTag);
         return nil;
     }
-    NSDictionary *responseHeaders = ((NSHTTPURLResponse *)response).allHeaderFields;
-
-    NSString *_Nullable cookie = [responseHeaders stringForKey:@"Set-Cookie"];
-    if (cookie.length < 1) {
+    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+    NSArray<NSHTTPCookie *> *cookies =
+        [NSHTTPCookie cookiesWithResponseHeaderFields:httpResponse.allHeaderFields forURL:[NSURL new]];
+    if (cookies.count < 1) {
         OWSProdLogAndFail(@"%@ couldn't parse cookie.", self.logTag);
         return nil;
-    }
-
-    // The cookie header will have this form:
-    // Set-Cookie: __NSCFString, c2131364675-413235ic=c1656171-249545-958227; Path=/; Secure
-    // We want to strip everything after the semicolon (;).
-    NSRange cookieRange = [cookie rangeOfString:@";"];
-    if (cookieRange.length != NSNotFound) {
-        cookie = [cookie substringToIndex:cookieRange.location];
     }
 
     if (![responseJson isKindOfClass:[NSDictionary class]]) {
@@ -473,7 +463,7 @@ NS_ASSUME_NONNULL_BEGIN
     }
 
     RemoteAttestation *result = [RemoteAttestation new];
-    result.cookie = cookie;
+    result.cookies = cookies;
     result.keys = keys;
     result.requestId = requestId;
     result.enclaveId = enclaveId;

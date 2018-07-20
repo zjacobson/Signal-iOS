@@ -22,7 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, readonly) RemoteAttestationKeys *keys;
 // TODO: Do we need to support multiple cookies?
-@property (nonatomic, readonly) NSString *cookie;
+@property (nonatomic, readonly) NSArray<NSHTTPCookie *> *cookies;
 @property (nonatomic, readonly) NSData *requestId;
 @property (nonatomic, readonly) NSString *enclaveId;
 @property (nonatomic, readonly) NSString *authUsername;

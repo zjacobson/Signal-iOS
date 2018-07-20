@@ -306,11 +306,11 @@ NS_ASSUME_NONNULL_BEGIN
                                           enclaveId:(NSString *)enclaveId
                                        authUsername:(NSString *)authUsername
                                        authPassword:(NSString *)authPassword
+                                            cookies:(NSArray<NSHTTPCookie *> *)cookies
 {
     NSString *path =
         [NSString stringWithFormat:@"https://api.contact-discovery.acton-signal.org/v1/discovery/%@", enclaveId];
 
-    // TODO include cookie
     TSRequest *request = [TSRequest requestWithUrl:[NSURL URLWithString:path]
                                             method:@"PUT"
                                         parameters:@{
@@ -320,8 +320,15 @@ NS_ASSUME_NONNULL_BEGIN
                                             @"iv" : cryptIv.base64EncodedString,
                                             @"mac" : cryptMac.base64EncodedString,
                                         }];
+
     request.authUsername = authUsername;
     request.authPassword = authPassword;
+
+    NSDictionary<NSString *, NSString *> *cookieHeaders = [NSHTTPCookie requestHeaderFieldsWithCookies:cookies];
+    for (NSString *cookieHeader in cookieHeaders) {
+        NSString *cookieValue = cookieHeaders[cookieHeader];
+        [request setValue:cookieValue forHTTPHeaderField:cookieHeader];
+    }
 
     return request;
 }
