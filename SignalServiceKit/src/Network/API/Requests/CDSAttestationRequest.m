@@ -11,14 +11,15 @@ NS_ASSUME_NONNULL_BEGIN
 - (TSRequest *)initWithURL:(NSURL *)URL
                     method:(NSString *)method
                 parameters:(nullable NSDictionary<NSString *, id> *)parameters
-                  username:(NSString *)username
-                 authToken:(NSString *)authToken
+              authUsername:(NSString *)authUsername
+              authPassword:(NSString *)authPassword
 {
-    OWSAssert(authToken.length > 0);
+    OWSAssert(authUsername.length > 0);
+    OWSAssert(authPassword.length > 0);
 
     if (self = [super initWithURL:URL method:method parameters:parameters]) {
-        _username = username;
-        _authToken = authToken;
+        self.authUsername = authUsername;
+        self.authPassword = authPassword;
     }
 
     return self;

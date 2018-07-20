@@ -128,7 +128,6 @@ class LegacyContactDiscoveryBatchOperation: OWSOperation {
                                             }
 
                                             self.reportError(error)
-
         })
     }
 
@@ -196,6 +195,10 @@ class CDSBatchOperation: OWSOperation {
     private let recipientIdsToLookup: [String]
     var registeredRecipientIds: Set<String>
 
+    private var networkManager: TSNetworkManager {
+        return TSNetworkManager.shared()
+    }
+
     // MARK: Initializers
 
     required init(recipientIdsToLookup: [String]) {
@@ -213,9 +216,155 @@ class CDSBatchOperation: OWSOperation {
     override func run() {
         Logger.debug("\(logTag) in \(#function)")
 
-        Logger.debug("\(logTag) in \(#function) FAKING intersection (TODO)")
-        self.registeredRecipientIds = Set(self.recipientIdsToLookup)
-        self.reportSuccess()
+        guard !isCancelled else {
+            Logger.info("\(logTag) in \(#function) no work to do, since we were canceled")
+            self.reportCancelled()
+            return
+        }
+
+        let cds = ContactDiscoveryService.shared()
+        cds.performRemoteAttestation(success: { (remoteAttestation: RemoteAttestation) in
+            self.makeContactDiscoveryRequest(remoteAttestation: remoteAttestation)
+        },
+                                     failure: self.reportError)
+    }
+
+    private func makeContactDiscoveryRequest(remoteAttestation: RemoteAttestation) {
+
+        guard !isCancelled else {
+            Logger.info("\(logTag) in \(#function) no work to do, since we were canceled")
+            self.reportCancelled()
+            return
+        }
+
+        let encryptionResult: AddressEncryptionResult
+        do {
+            encryptionResult = try encryptedAddresses(recipientIds: Set(self.recipientIdsToLookup), remoteAttestation: remoteAttestation)
+        } catch {
+            reportError(error)
+            return
+        }
+
+        /*
+         Request:
+         requestId:        (variable length, base64) the decrypted ciphertext from the Remote Attestation response
+         addressCount:    (integer from 1 to 2048) count of phone numbers in request
+         data:            ((addressCount*8) bytes, base64) array of normalized international phone numbers, encoded numerically as 64-bit big-endian integers
+         (data, mac) = AES-256-GCM(key=client_key, plaintext=phoneArray, AAD=requestId, iv=secureRandom())
+         iv:            (12 bytes, base64) Client-chosen IV for encrypted data
+         mac:            (16 bytes, base64) MAC for encrypted data
+         */
+        let request = OWSRequestFactory.enclaveContactDiscoveryRequest(withId: remoteAttestation.requestId,
+                                                                       addressCount: encryptionResult.addressCount,
+                                                                       encryptedAddressData: encryptionResult.encryptedAddressData,
+                                                                       cryptIv: encryptionResult.initializationVector,
+                                                                       cryptMac: encryptionResult.authTag,
+                                                                       enclaveId: remoteAttestation.enclaveId,
+                                                                       authUsername: remoteAttestation.authUsername,
+                                                                       authPassword: remoteAttestation.authToken)
+
+        self.networkManager.makeRequest(request,
+                                        success: { (task, responseDict) in
+                                            do {
+                                                self.registeredRecipientIds = try self.parse(response: responseDict)
+                                                self.reportSuccess()
+                                            } catch {
+                                                self.reportError(error)
+                                            }
+        },
+                                        failure: { (task, error) in
+                                            guard let response = task.response as? HTTPURLResponse else {
+                                                let responseError: NSError = OWSErrorMakeUnableToProcessServerResponseError() as NSError
+                                                responseError.isRetryable = true
+                                                self.reportError(responseError)
+                                                return
+                                            }
+
+                                            guard response.statusCode != 413 else {
+                                                let rateLimitError = OWSErrorWithCodeDescription(OWSErrorCode.contactsUpdaterRateLimit, "Contacts Intersection Rate Limit")
+                                                self.reportError(rateLimitError)
+                                                return
+                                            }
+
+                                            self.reportError(error)
+        })
+    }
+
+    struct AddressEncryptionResult {
+        let addressCount: UInt
+        let encryptedAddressData: Data
+        let initializationVector: Data
+        let authTag: Data
+    }
+
+    func encryptedAddresses(recipientIds: Set<String>, remoteAttestation: RemoteAttestation) throws -> AddressEncryptionResult {
+
+        /*
+         Request:
+         requestId:        (variable length, base64) the decrypted ciphertext from the Remote Attestation response
+         addressCount:    (integer from 1 to 2048) count of phone numbers in request
+         data:            ((addressCount*8) bytes, base64) array of normalized international phone numbers, encoded numerically as 64-bit big-endian integers
+         (data, mac) = AES-256-GCM(key=client_key, plaintext=phoneArray, AAD=requestId, iv=secureRandom())
+         iv:            (12 bytes, base64) Client-chosen IV for encrypted data
+         mac:            (16 bytes, base64) MAC for encrypted data
+        */
+
+        let addressCount: UInt = UInt(recipientIds.count)
+
+        let addressPlainTextData = encodePhoneNumbers(recipientIds: recipientIds)
+
+        guard let encryptionResult = Cryptography.encryptAESGCM(with: addressPlainTextData, key: remoteAttestation.keys.clientKey) else {
+            throw CDSBatchOperationError.assertionError(description: "Encryption failure")
+        }
+
+        return AddressEncryptionResult(addressCount: addressCount,
+                                       encryptedAddressData: encryptionResult.ciphertext,
+                                       initializationVector: encryptionResult.initializationVector,
+                                       authTag: encryptionResult.authTag)
+    }
+
+    func encodePhoneNumbers(recipientIds: Set<String>) -> Data {
+        var output = Data()
+
+        recipientIds.compactMap { recipientId in
+            guard recipientId.prefix(1) == "+" else {
+                owsFail("\(self.logTag) in \(#function) unexpected initial char in")
+                return nil
+            }
+
+            let numericPortionIndex = recipientId.index(after: recipientId.startIndex)
+            let numericPortion = recipientId.suffix(from: numericPortionIndex)
+
+            guard let numericIdentifier = UInt64(numericPortion), numericIdentifier > 99 else {
+                owsFail("\(self.logTag) in \(#function) unexpectedly short identifier")
+                return nil
+            }
+
+            return numericIdentifier
+        }.forEach { (numericIdentifier: UInt64) in
+            var bigEndian: UInt64 = CFSwapInt64HostToBig(numericIdentifier)
+            let buffer = UnsafeBufferPointer(start: &bigEndian, count: 1)
+            output.append(buffer)
+        }
+
+        return output
+    }
+
+    enum CDSBatchOperationError: Error {
+        case parseError(description: String)
+        case assertionError(description: String)
+    }
+
+    func parse(response: Any?) throws -> Set<String> {
+        /*
+        Response:
+        A successful (HTTP 200) response json object consists of:
+        data:            ((addressCount) bytes, base64) list of boolean values, where zero is false and non-zero is true, with one boolean for each input phone number in the same order, indicating whether a signal user exists for that phone number or not
+        (data, mac) = AES-256-GCM(key=server_key, plaintext=resultBoolArray, AAD=(), iv)
+        iv:            (12 bytes, base64) Server-chosen IV for encrypted data
+            mac:            (16 bytes, base64) MAC for encrypted data
+        */
+        throw CDSBatchOperationError.parseError(description: "unimplemented")
     }
 }
 
