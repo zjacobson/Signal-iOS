@@ -25,11 +25,14 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface OWSMessageSender (Testing)
 
-@property (nonatomic) OWSUploadingOperation *uploadingService;
-@property (nonatomic) ContactsUpdater *contactsUpdater;
+@property (nonatomic) OWSUploadOperation *uploadingService;
 
 // Private Methods to test
-- (NSArray<SignalRecipient *> *)getRecipients:(NSArray<NSString *> *)identifiers error:(NSError **)error;
+//- (NSArray<SignalRecipient *> *)getRecipients:(NSArray<NSString *> *)identifiers error:(NSError **)error;
+
+- (void)sendMessageToService:(TSOutgoingMessage *)message
+                     success:(void (^)(void))successHandler
+                     failure:(RetryableFailureHandler)failureHandler;
 
 @end
 
@@ -41,16 +44,6 @@ NS_ASSUME_NONNULL_BEGIN
 {
     NSLog(@"[OWSFakeMessagesManager] Faking deviceMessages.");
     return @[];
-}
-
-- (void)setContactsUpdater:(ContactsUpdater *)contactsUpdater
-{
-    _contactsUpdater = contactsUpdater;
-}
-
-- (ContactsUpdater *)contactsUpdater
-{
-    return _contactsUpdater;
 }
 
 - (void)setUploadingService:(OWSUploadingService *)uploadingService
@@ -65,7 +58,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface OWSFakeUploadingService : OWSUploadingOperation
+@interface OWSFakeUploadingService : OWSUploadOperation
 
 @property (nonatomic, readonly) BOOL shouldSucceed;
 
@@ -218,21 +211,18 @@ NS_ASSUME_NONNULL_BEGIN
 
     OWSPrimaryStorage *storageManager = [OWSPrimaryStorage sharedManager];
     OWSFakeContactsManager *contactsManager = [OWSFakeContactsManager new];
-    OWSFakeContactsUpdater *contactsUpdater = [OWSFakeContactsUpdater new];
 
     // Successful Sending
     TSNetworkManager *successfulNetworkManager = [[OWSMessageSenderFakeNetworkManager alloc] initWithSuccess:YES];
     self.successfulMessageSender = [[OWSMessageSender alloc] initWithNetworkManager:successfulNetworkManager
                                                                      storageManager:storageManager
-                                                                    contactsManager:contactsManager
-                                                                    contactsUpdater:contactsUpdater];
+                                                                    contactsManager:contactsManager];
 
     // Unsuccessful Sending
     TSNetworkManager *unsuccessfulNetworkManager = [[OWSMessageSenderFakeNetworkManager alloc] initWithSuccess:NO];
     self.unsuccessfulMessageSender = [[OWSMessageSender alloc] initWithNetworkManager:unsuccessfulNetworkManager
                                                                        storageManager:storageManager
-                                                                      contactsManager:contactsManager
-                                                                      contactsUpdater:contactsUpdater];
+                                                                      contactsManager:contactsManager];
 }
 
 - (void)testExpiringMessageTimerStartsOnSuccessWhenDisappearingMessagesEnabled
@@ -274,7 +264,7 @@ NS_ASSUME_NONNULL_BEGIN
     OWSMessageSender *messageSender = self.successfulMessageSender;
 
     XCTestExpectation *messageDidNotStartExpiration = [self expectationWithDescription:@"messageDidNotStartExpiration"];
-    [messageSender sendMessage:self.unexpiringMessage
+    [messageSender sendMessageToService:self.unexpiringMessage
         success:^() {
             if (self.unexpiringMessage.isExpiringMessage || self.unexpiringMessage.expiresAt > 0) {
                 XCTFail(@"Message expiration was not supposed to start.");
@@ -300,7 +290,7 @@ NS_ASSUME_NONNULL_BEGIN
     XCTAssertEqual(0, self.expiringMessage.expiresAt);
 
     XCTestExpectation *messageDidNotStartExpiration = [self expectationWithDescription:@"messageStartedExpiration"];
-    [messageSender sendMessage:self.expiringMessage
+    [messageSender sendMessageToService:self.expiringMessage
         success:^() {
             XCTFail(@"Message sending was supposed to fail.");
         }
@@ -319,14 +309,14 @@ NS_ASSUME_NONNULL_BEGIN
 {
     OWSMessageSender *messageSender = self.successfulMessageSender;
 
-    TSOutgoingMessage *message = [[TSOutgoingMessage alloc] initWithTimestamp:1
-                                                                     inThread:self.thread
-                                                                  messageBody:@"We want punks in the palace."];
+    TSOutgoingMessage *message = [TSOutgoingMessage outgoingMessageInThread:self.thread
+                                                                messageBody:@"We want punks in the palace."
+                                                               attachmentId:nil];
 
     XCTestExpectation *markedAsSent = [self expectationWithDescription:@"markedAsSent"];
-    [messageSender sendMessage:message
+    [messageSender sendMessageToService:message
         success:^() {
-            if (message.messageState == TSOutgoingMessageStateSentToService) {
+            if (message.messageState == TSOutgoingMessageStateSent) {
                 [markedAsSent fulfill];
             } else {
                 XCTFail(@"Unexpected message state");
