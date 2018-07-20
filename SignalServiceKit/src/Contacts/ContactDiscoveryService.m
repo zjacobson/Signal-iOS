@@ -670,6 +670,7 @@ NS_ASSUME_NONNULL_BEGIN
     }
     NSData *_Nullable decryptedData = [Cryptography decryptAESGCMWithInitializationVector:encryptedRequestIv
                                                                                ciphertext:encryptedRequestId
+                                                              additionalAuthenticatedData:nil
                                                                                   authTag:encryptedRequestTag
                                                                                       key:key];
     if (!decryptedData) {

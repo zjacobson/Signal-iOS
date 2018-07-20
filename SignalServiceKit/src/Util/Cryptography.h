@@ -81,9 +81,14 @@ typedef NS_ENUM(NSInteger, TSMACType) {
                            outKey:(NSData *_Nonnull *_Nullable)outKey
                         outDigest:(NSData *_Nonnull *_Nullable)outDigest;
 
-+ (nullable AES25GCMEncryptionResult *)encryptAESGCMWithData:(NSData *)plaintext key:(OWSAES256Key *)key;
++ (nullable AES25GCMEncryptionResult *)encryptAESGCMWithData:(NSData *)plaintext
+                                 additionalAuthenticatedData:(nullable NSData *)additionalAuthenticatedData
+                                                         key:(OWSAES256Key *)key
+  NS_SWIFT_NAME(encryptAESGCM(plainTextData:additionalAuthenticatedData:key:));
+
 + (nullable NSData *)decryptAESGCMWithInitializationVector:(NSData *)initializationVector
                                                 ciphertext:(NSData *)ciphertext
+                               additionalAuthenticatedData:(nullable NSData *)additionalAuthenticatedData
                                                    authTag:(NSData *)authTagFromEncrypt
                                                        key:(OWSAES256Key *)key;
 

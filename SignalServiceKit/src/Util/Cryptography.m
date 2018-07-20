@@ -488,7 +488,9 @@ const NSUInteger kAES256_KeyByteLength = 32;
     return [encryptedPaddedData copy];
 }
 
-+ (nullable AES25GCMEncryptionResult *)encryptAESGCMWithData:(NSData *)plaintext key:(OWSAES256Key *)key
++ (nullable AES25GCMEncryptionResult *)encryptAESGCMWithData:(NSData *)plaintext
+                                 additionalAuthenticatedData:(nullable NSData *)additionalAuthenticatedData
+                                                         key:(OWSAES256Key *)key
 {
     NSData *initializationVector = [Cryptography generateRandomBytes:kAESGCM256_IVLength];
     NSMutableData *ciphertext = [NSMutableData dataWithLength:plaintext.length];
@@ -519,6 +521,26 @@ const NSUInteger kAES256_KeyByteLength = 32;
     }
 
     int bytesEncrypted = 0;
+
+    // Provide any AAD data. This can be called zero or more times as
+    // required
+    if (additionalAuthenticatedData != nil) {
+        if (additionalAuthenticatedData.length >= INT32_MAX) {
+            OWSFail(@"%@ additionalAuthenticatedData too large", self.logTag);
+            return nil;
+        }
+        if (EVP_EncryptUpdate(
+                ctx, NULL, &bytesEncrypted, additionalAuthenticatedData.bytes, (int)additionalAuthenticatedData.length)
+            != kOpenSSLSuccess) {
+            OWSFail(@"%@ encryptUpdate failed", self.logTag);
+            return nil;
+        }
+    }
+
+    if (plaintext.length >= UINT32_MAX) {
+        OWSFail(@"%@ plaintext too large", self.logTag);
+        return nil;
+    }
 
     // Provide the message to be encrypted, and obtain the encrypted output.
     //
@@ -566,6 +588,7 @@ const NSUInteger kAES256_KeyByteLength = 32;
 
 + (nullable NSData *)decryptAESGCMWithInitializationVector:(NSData *)initializationVector
                                                 ciphertext:(NSData *)ciphertext
+                               additionalAuthenticatedData:(nullable NSData *)additionalAuthenticatedData
                                                    authTag:(NSData *)authTagFromEncrypt
                                                        key:(OWSAES256Key *)key
 {
@@ -602,12 +625,27 @@ const NSUInteger kAES256_KeyByteLength = 32;
         return nil;
     }
 
+    int decryptedBytes = 0;
+
+    // Provide any AAD data. This can be called zero or more times as
+    // required
+    if (additionalAuthenticatedData) {
+        if (additionalAuthenticatedData.length >= INT32_MAX) {
+            OWSFail(@"%@ additionalAuthenticatedData too large", self.logTag);
+            return nil;
+        }
+        if (!EVP_DecryptUpdate(
+                ctx, NULL, &decryptedBytes, additionalAuthenticatedData.bytes, additionalAuthenticatedData.length)) {
+            OWSFail(@"%@ failed during additionalAuthenticatedData", self.logTag);
+            return nil;
+        }
+    }
+
     // Provide the message to be decrypted, and obtain the plaintext output.
     //
     // If we wanted to save memory, we could decrypt piece-wise from an iostream -
     // feeding each chunk to EVP_DecryptUpdate, which can be called multiple times.
     // For simplicity, we currently decrypt the entire ciphertext in one shot.
-    int decryptedBytes = 0;
     if (EVP_DecryptUpdate(ctx, plaintext.mutableBytes, &decryptedBytes, ciphertext.bytes, (int)ciphertext.length)
         != kOpenSSLSuccess) {
         OWSFail(@"%@ decryptUpdate failed", self.logTag);
@@ -649,8 +687,7 @@ const NSUInteger kAES256_KeyByteLength = 32;
 
 + (nullable NSData *)encryptAESGCMWithProfileData:(NSData *)plaintext key:(OWSAES256Key *)key
 {
-
-    AES25GCMEncryptionResult *result = [self encryptAESGCMWithData:plaintext key:key];
+    AES25GCMEncryptionResult *result = [self encryptAESGCMWithData:plaintext additionalAuthenticatedData:nil key:key];
 
     NSMutableData *encryptedData = [result.initializationVector mutableCopy];
     [encryptedData appendData:result.ciphertext];
@@ -670,8 +707,11 @@ const NSUInteger kAES256_KeyByteLength = 32;
     NSData *authTag =
         [encryptedData subdataWithRange:NSMakeRange(kAESGCM256_IVLength + cipherTextLength, kAESGCM256_TagLength)];
 
-    return
-        [self decryptAESGCMWithInitializationVector:initializationVector ciphertext:ciphertext authTag:authTag key:key];
+    return [self decryptAESGCMWithInitializationVector:initializationVector
+                                            ciphertext:ciphertext
+                           additionalAuthenticatedData:nil
+                                               authTag:authTag
+                                                   key:key];
 }
 
 @end

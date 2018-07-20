@@ -314,8 +314,23 @@ class CDSBatchOperation: OWSOperation {
 
         let addressPlainTextData = encodePhoneNumbers(recipientIds: recipientIds)
 
-        guard let encryptionResult = Cryptography.encryptAESGCM(with: addressPlainTextData, key: remoteAttestation.keys.clientKey) else {
+        guard let encryptionResult = Cryptography.encryptAESGCM(plainTextData: addressPlainTextData,
+                                                                additionalAuthenticatedData: remoteAttestation.requestId,
+                                                                key: remoteAttestation.keys.clientKey) else {
+
             throw CDSBatchOperationError.assertionError(description: "Encryption failure")
+        }
+
+        let decryptionResult = Cryptography.decryptAESGCM(withInitializationVector: encryptionResult.initializationVector,
+                                                          ciphertext: encryptionResult.ciphertext,
+                                                          additionalAuthenticatedData: remoteAttestation.requestId,
+                                                          authTag: encryptionResult.authTag,
+                                                          key: remoteAttestation.keys.clientKey)
+
+        if decryptionResult == addressPlainTextData {
+            Logger.debug("\(logTag) in \(#function) Decryption Matched!")
+        } else {
+            Logger.debug("\(logTag) in \(#function) Decryption Mismatch!")
         }
 
         return AddressEncryptionResult(addressCount: addressCount,
@@ -365,6 +380,7 @@ class CDSBatchOperation: OWSOperation {
         iv:            (12 bytes, base64) Server-chosen IV for encrypted data
             mac:            (16 bytes, base64) MAC for encrypted data
         */
+
         throw CDSBatchOperationError.parseError(description: "unimplemented")
     }
 }
