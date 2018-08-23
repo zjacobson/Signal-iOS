@@ -1,8 +1,8 @@
 //
-//  Copyright (c) 2017 Open Whisper Systems. All rights reserved.
+//  Copyright (c) 2018 Open Whisper Systems. All rights reserved.
 //
 
-#import "NSData+Base64.h"
+#import "NSData+OWS.h"
 #import "OWSAnalytics.h"
 #import <XCTest/XCTest.h>
 
