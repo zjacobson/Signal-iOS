@@ -17,6 +17,7 @@
 #import "TSGroupThread.h"
 #import "TSNetworkManager.h"
 #import "TSOutgoingMessage.h"
+#import "TSRequest.h"
 #import <AxolotlKit/AxolotlExceptions.h>
 #import <AxolotlKit/SessionBuilder.h>
 #import <XCTest/XCTest.h>
@@ -150,6 +151,9 @@ NS_ASSUME_NONNULL_BEGIN
             success:(void (^)(NSURLSessionDataTask *task, id responseObject))success
             failure:(void (^)(NSURLSessionDataTask *task, NSError *error))failure
 {
+    BOOL isSubmitMessageRequest
+        = ([request.HTTPMethod isEqualToString:@"PUT"] && [request.URL.path hasPrefix:textSecureMessagesAPI]);
+
     if ([request isKindOfClass:[TSSubmitMessageRequest class]]) {
         if (self.shouldSucceed) {
             success([NSURLSessionDataTask new], @{});

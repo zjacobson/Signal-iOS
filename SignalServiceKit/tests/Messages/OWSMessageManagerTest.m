@@ -13,15 +13,15 @@
 #import "OWSIdentityManager.h"
 #import "OWSMessageSender.h"
 #import "OWSPrimaryStorage.h"
-#import "OWSSignalServiceProtos.pb.h"
 #import "OWSUnitTestEnvironment.h"
 #import "TSGroupThread.h"
 #import "TSNetworkManager.h"
+#import <SignalServiceKit/SignalServiceKit-Swift.h>
 #import <XCTest/XCTest.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface TSMessagesManager (Testing)
+@interface OWSMessageManager (Testing)
 
 // Private init for stubbing dependencies
 
@@ -42,15 +42,15 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface TSMessagesManagerTest : XCTestCase
+@interface OWSMessageManagerTest : XCTestCase
 
 @end
 
-@implementation TSMessagesManagerTest
+@implementation OWSMessageManagerTest
 
-- (TSMessagesManager *)messagesManagerWithSender:(OWSMessageSender *)messageSender
+- (OWSMessageManager *)messagesManagerWithSender:(OWSMessageSender *)messageSender
 {
-    return [[TSMessagesManager alloc] initWithNetworkManager:[OWSFakeNetworkManager new]
+    return [[OWSMessageManager alloc] initWithNetworkManager:[OWSFakeNetworkManager new]
                                               storageManager:[OWSPrimaryStorage sharedManager]
                                           callMessageHandler:[OWSFakeCallMessageHandler new]
                                              contactsManager:[OWSFakeContactsManager new]
@@ -62,14 +62,14 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)setUp
 {
     [super setUp];
-    
+
     [OWSUnitTestEnvironment ensureSetup];
 }
 
 - (void)testIncomingSyncContactMessage
 {
     XCTestExpectation *messageWasSent = [self expectationWithDescription:@"message was sent"];
-    TSMessagesManager *messagesManager =
+    OWSMessageManager *messagesManager =
         [self messagesManagerWithSender:[[OWSFakeMessageSender alloc] initWithExpectation:messageWasSent]];
 
     OWSSignalServiceProtosEnvelopeBuilder *envelopeBuilder = [OWSSignalServiceProtosEnvelopeBuilder new];
@@ -94,7 +94,7 @@ NS_ASSUME_NONNULL_BEGIN
     TSGroupThread *groupThread = [TSGroupThread fetchObjectWithUniqueID:groupThreadId];
     XCTAssertNil(groupThread);
 
-    TSMessagesManager *messagesManager = [self messagesManagerWithSender:[OWSFakeMessageSender new]];
+    OWSMessageManager *messagesManager = [self messagesManagerWithSender:[OWSFakeMessageSender new]];
 
     OWSSignalServiceProtosEnvelopeBuilder *envelopeBuilder = [OWSSignalServiceProtosEnvelopeBuilder new];
 
@@ -120,7 +120,7 @@ NS_ASSUME_NONNULL_BEGIN
     TSGroupThread *groupThread = [TSGroupThread fetchObjectWithUniqueID:groupThreadId];
     XCTAssertNil(groupThread);
 
-    TSMessagesManager *messagesManager = [self messagesManagerWithSender:[OWSFakeMessageSender new]];
+    OWSMessageManager *messagesManager = [self messagesManagerWithSender:[OWSFakeMessageSender new]];
 
 
     OWSSignalServiceProtosEnvelopeBuilder *envelopeBuilder = [OWSSignalServiceProtosEnvelopeBuilder new];
@@ -156,7 +156,7 @@ NS_ASSUME_NONNULL_BEGIN
     // Sanity check
     XCTAssertEqual(0, groupThread.numberOfInteractions);
 
-    TSMessagesManager *messagesManager = [self messagesManagerWithSender:[OWSFakeMessageSender new]];
+    OWSMessageManager *messagesManager = [self messagesManagerWithSender:[OWSFakeMessageSender new]];
 
     OWSSignalServiceProtosEnvelopeBuilder *envelopeBuilder = [OWSSignalServiceProtosEnvelopeBuilder new];
 

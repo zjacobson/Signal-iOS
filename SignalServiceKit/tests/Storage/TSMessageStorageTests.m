@@ -79,9 +79,11 @@
                 [TSOutgoingMessage outgoingMessageInThread:self.thread messageBody:body attachmentId:nil];
             [newMessage saveWithTransaction:transaction];
 
-            TSOutgoingMessage *retrieved =
-                [TSOutgoingMessage fetchObjectWithUniqueID:[@(messageInt + 50) stringValue] transaction:transaction];
-            XCTAssertEqual(uniqueNewTimestamp, retrieved.timestamp);
+            NSString *expectedUniqueId = [@(messageInt + 50) stringValue];
+            TSOutgoingMessage *_Nullable retrieved =
+                [TSOutgoingMessage fetchObjectWithUniqueID:expectedUniqueId transaction:transaction];
+            XCTAssertNotNil(retrieved);
+            XCTAssertEqual(newMessage.timestamp, retrieved.timestamp);
         }];
 }
 
@@ -124,11 +126,17 @@
 
     NSMutableArray<TSIncomingMessage *> *messages = [NSMutableArray new];
     for (int i = 0; i < 10; i++) {
-        TSIncomingMessage *newMessage = [[TSIncomingMessage alloc] initWithTimestamp:i
-                                                                            inThread:self.thread
-                                                                            authorId:[self.thread contactIdentifier]
-                                                                      sourceDeviceId:1
-                                                                         messageBody:body];
+        TSIncomingMessage *newMessage =
+            [[TSIncomingMessage alloc] initIncomingMessageWithTimestamp:i
+                                                               inThread:self.thread
+                                                               authorId:[self.thread contactIdentifier]
+                                                         sourceDeviceId:1
+                                                            messageBody:body
+                                                          attachmentIds:@[]
+                                                       expiresInSeconds:0
+                                                          quotedMessage:nil
+                                                           contactShare:nil];
+
         [messages addObject:newMessage];
         [newMessage save];
     }
@@ -174,11 +182,15 @@
 
     NSMutableArray<TSIncomingMessage *> *messages = [NSMutableArray new];
     for (uint64_t i = 0; i < 10; i++) {
-        TSIncomingMessage *newMessage = [[TSIncomingMessage alloc] initWithTimestamp:i
-                                                                            inThread:thread
-                                                                            authorId:@"Ed"
-                                                                      sourceDeviceId:1
-                                                                         messageBody:body];
+        TSIncomingMessage *newMessage = [[TSIncomingMessage alloc] initIncomingMessageWithTimestamp:i
+                                                                                           inThread:thread
+                                                                                           authorId:@"Ed"
+                                                                                     sourceDeviceId:1
+                                                                                        messageBody:body
+                                                                                      attachmentIds:@[]
+                                                                                   expiresInSeconds:0
+                                                                                      quotedMessage:nil
+                                                                                       contactShare:nil];
         [newMessage save];
         [messages addObject:newMessage];
     }
